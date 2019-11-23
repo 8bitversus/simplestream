@@ -41,6 +41,9 @@ VID_GOP=$((VID_FPS * 2))
 # Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
 VID_MOUSE=0
 
+# Colour space
+VID_COLORSPACE="yuv420p"
+
 # Get the audio loopback device to record from; excludes Microphones.
 # - https://unix.stackexchange.com/questions/488063/record-screen-and-internal-audio-with-ffmpeg
 # - https://askubuntu.com/questions/516899/how-do-i-stream-computer-audio-only-with-ffmpeg
@@ -69,12 +72,12 @@ if [ "${LAUNCHER}" == "stream" ]; then
     -f pulse -thread_queue_size 64 -i ${AUD_DEVICE} \
     -f x11grab -draw_mouse ${VID_MOUSE} -video_size ${VID_SIZE} -framerate ${VID_FPS} -i ${VID_CAPTURE} \
     -c:a aac -b:a 128k -ac 2 -ar 44100 \
-    -c:v ${VID_CODEC} -pix_fmt yuv420p -preset ${VID_PRESET} -g ${VID_GOP} -tune zerolatency -bsf:v h264_mp4toannexb -f ${VID_CONTAINER} ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
+    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} -g ${VID_GOP} -tune zerolatency -bsf:v h264_mp4toannexb -f ${VID_CONTAINER} ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
 elif [ "${LAUNCHER}" == "capture" ]; then
   # Capture the window and loopback audio as H.264/AAC in a Matroska container
   ${FFMPEG} -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
     -f pulse -i ${AUD_DEVICE} \
     -f x11grab -draw_mouse ${VID_MOUSE} -video_size ${VID_SIZE} -framerate ${VID_FPS} -i ${VID_CAPTURE} \
     -c:a aac -b:a 128k -ac 2 -ar 44100 \
-    -c:v ${VID_CODEC} -r ${VID_FPS} -pix_fmt yuv420p -preset ${VID_PRESET} "${LAUNCHER}-${STAMP}.mkv"
+    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} "${LAUNCHER}-${STAMP}.mkv"
 fi
