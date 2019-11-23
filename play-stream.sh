@@ -10,8 +10,13 @@ LOG_LEVEL="panic"
 if [ "${LAUNCHER}" == "play-stream" ]; then
   # Play a video stream with low latency
   # - https://stackoverflow.com/questions/16658873/how-to-minimize-the-delay-in-a-live-streaming-with-ffmpeg
-  ffplay -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
-    -fflags nobuffer -flags low_delay -strict experimental -probesize 32 -sync ext -framedrop -window_title "${LAUNCHER}" -i ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
+  TEST_MPV=$(which mpv)
+  if [ $? -eq 0 ]; then
+    mpv --no-cache --untimed --video-sync=audio --vd-lavc-threads=1 --title="mpv: ${LAUNCHER}" ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
+  else
+    ffplay -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
+      -fflags nobuffer -flags low_delay -strict experimental -sync ext -framedrop -window_title "ffplay: ${LAUNCHER}" -i ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
+  fi
 elif [ "${LAUNCHER}" == "record-stream" ]; then
   # Record a video stream in a Matroska container.
   ffmpeg -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
