@@ -15,8 +15,18 @@ fi
 
 # Use the appropriate container based on the protocol selected.
 case ${IP_PROTO} in
-  rtp) VID_CONTAINER="rtp";;
-  tcp | udp) VID_CONTAINER="mpegts";;
+  rtp)
+    VID_CONTAINER="rtp"
+    STREAM_OPTIONS=""
+    ;;
+  tcp)
+    VID_CONTAINER="mpegts"
+    STREAM_OPTIONS="?listen"
+    ;;
+  udp)
+    VID_CONTAINER="mpegts"
+    STREAM_OPTIONS="?fifo_size=10240"
+    ;;
 esac
 
 TEST_NVENC=$(nvidia-smi -q | grep Encoder | wc -l)
@@ -72,7 +82,7 @@ if [ "${LAUNCHER}" == "stream" ]; then
     -f pulse -thread_queue_size 64 -i ${AUD_DEVICE} \
     -f x11grab -draw_mouse ${VID_MOUSE} -video_size ${VID_SIZE} -framerate ${VID_FPS} -i ${VID_CAPTURE} \
     -c:a aac -b:a 128k -ac 2 -ar 44100 \
-    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} -g ${VID_GOP} -tune zerolatency -bsf:v h264_mp4toannexb -f ${VID_CONTAINER} ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
+    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} -g ${VID_GOP} -tune zerolatency -bsf:v h264_mp4toannexb -f ${VID_CONTAINER} ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}
 elif [ "${LAUNCHER}" == "capture" ]; then
   # Capture the window and loopback audio as H.264/AAC in a Matroska container
   ${FFMPEG} -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
