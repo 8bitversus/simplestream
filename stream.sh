@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 
+IP_PROTO="udp"
 IP_PORT="23000"
 IP_ADDR="127.0.0.1"
 LAUNCHER=$(basename $0 .sh)
 STAMP=$(date +"%C%j-%H%M%S")
 LOG_LEVEL="error"
+
+# Use the appropriate container based on the protocol selected.
+case ${IP_PROTO} in
+  "udp") VID_CONTAINER="mpegts";;
+esac
 
 # Framerate to stream and Group of Pictures (GOP)
 VID_FPS="60"
@@ -40,7 +46,7 @@ if [ "${LAUNCHER}" == "stream" ]; then
     -f pulse -i ${AUD_DEVICE} \
     -f x11grab -draw_mouse ${VID_MOUSE} -video_size ${VID_SIZE} -framerate ${VID_FPS} -i ${VID_CAPTURE} \
     -acodec aac -ac 2 -ar 44100 -b:a 128k \
-    -pix_fmt yuv420p -g ${VID_GOP} -vcodec libx264 -preset ultrafast -tune zerolatency -bsf:v h264_mp4toannexb -f mpegts udp://${IP_ADDR}:${IP_PORT}
+    -c:v libx264 -pix_fmt yuv420p -preset ultrafast -g ${VID_GOP} -tune zerolatency -bsf:v h264_mp4toannexb -f ${VID_CONTAINER} ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
 elif [ "${LAUNCHER}" == "capture" ]; then
   # Capture the window and loopback audio as H.264/AAC in a Matroska container
   ffmpeg -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
