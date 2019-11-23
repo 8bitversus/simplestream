@@ -4,6 +4,7 @@ IP_PORT="23000"
 IP_ADDR="127.0.0.1"
 LAUNCHER=$(basename $0 .sh)
 STAMP=$(date +"%C%j-%H%M%S")
+LOG_LEVEL="error"
 
 # Framerate to stream and Group of Pictures (GOP)
 VID_FPS="60"
@@ -35,14 +36,14 @@ if [ "${LAUNCHER}" == "stream" ]; then
   # Stream the window and loopback audio as a low latency MPEG2-TS
   # - https://dennismungai.wordpress.com/2018/02/06/low-latency-live-streaming-for-your-desktop-using-ffmpeg-and-netcat/
   # - https://www.ostechnix.com/20-ffmpeg-commands-beginners/
-  ffmpeg -hide_banner -threads 0 -loglevel error -stats \
+  ffmpeg -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
     -f pulse -i ${AUD_DEVICE} \
     -f x11grab -draw_mouse ${VID_MOUSE} -video_size ${VID_SIZE} -framerate ${VID_FPS} -i ${VID_CAPTURE} \
     -acodec aac -ac 2 -ar 44100 -b:a 128k \
     -pix_fmt yuv420p -g ${VID_GOP} -vcodec libx264 -preset ultrafast -tune zerolatency -bsf:v h264_mp4toannexb -f mpegts udp://${IP_ADDR}:${IP_PORT}
 elif [ "${LAUNCHER}" == "capture" ]; then
   # Capture the window and loopback audio as H.264/AAC in a Matroska container
-  ffmpeg -hide_banner -threads 0 -loglevel error -stats \
+  ffmpeg -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
     -f pulse -i ${AUD_DEVICE} \
     -f x11grab -draw_mouse ${VID_MOUSE} -video_size ${VID_SIZE} -framerate ${VID_FPS} -thread_queue_size 1024 -i ${VID_CAPTURE} \
     -acodec aac -ac 2 -ar 44100 -b:a 128k \
