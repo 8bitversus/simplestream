@@ -12,7 +12,18 @@ case ${IP_PROTO} in
   "udp") VID_CONTAINER="mpegts";;
 esac
 
-VID_CODEC="libx264"
+if [ -e /snap/bin/ffmpeg ]; then
+  FFMPEG="/snap/bin/ffmpeg"
+else
+  FFMPEG=$(which ffmpeg)
+fi
+
+TEST_NVENC=$(${FFMPEG} -hide_banner -hwaccels | grep cuda)
+if [ $? -eq 0 ]; then
+  VID_CODEC="h264_nvenc"
+else
+  VID_CODEC="libx264"
+fi
 
 # Use the appropriate preset based on the encoider selected.
 case ${VID_CODEC} in
@@ -46,12 +57,6 @@ CAPTURE_HEIGHT=$(sed -n -e "s/^ \+Height: \+\([0-9]\+\).*/\1/p" ${TMP_XWININFO})
 rm -f ${TMP_XWININFO}
 VID_CAPTURE="${DISPLAY}+${CAPTURE_X},${CAPTURE_Y}"
 VID_SIZE="${CAPTURE_WIDTH}x${CAPTURE_HEIGHT}"
-
-if [ -e /snap/bin/ffmpeg ]; then
-  FFMPEG="/snap/bin/ffmpeg"
-else
-  FFMPEG=$(which ffmpeg)
-fi
 
 if [ "${LAUNCHER}" == "stream" ]; then
   # Stream the window and loopback audio as a low latency MPEG2-TS
