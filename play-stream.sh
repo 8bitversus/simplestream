@@ -12,7 +12,8 @@ if [ "${LAUNCHER}" == "play-stream" ]; then
   # - https://stackoverflow.com/questions/16658873/how-to-minimize-the-delay-in-a-live-streaming-with-ffmpeg
   TEST_MPV=$(which mpv)
   if [ $? -eq 0 ]; then
-    mpv --no-cache --untimed --video-sync=audio --vd-lavc-threads=1 --title="mpv: ${LAUNCHER}" ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
+    # TODO: Eval if these are also required: `--no-cache --untimed`
+    mpv --profile=low-latency --title="mpv: ${LAUNCHER}" ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
   else
     ffplay -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
       -fflags nobuffer -flags low_delay -strict experimental -sync ext -framedrop -window_title "ffplay: ${LAUNCHER}" -i ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
