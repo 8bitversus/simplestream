@@ -7,19 +7,18 @@ LAUNCHER=$(basename $0 .sh)
 STAMP=$(date +"%C%j-%H%M%S")
 LOG_LEVEL="error"
 
-# Use the appropriate container based on the protocol selected.
-case ${IP_PROTO} in
-  "udp") VID_CONTAINER="mpegts";;
-esac
-
 if [ -e /snap/bin/ffmpeg ]; then
   FFMPEG="/snap/bin/ffmpeg"
 else
   FFMPEG=$(which ffmpeg)
 fi
 
-TEST_NVENC=$(${FFMPEG} -hide_banner -hwaccels | grep cuda)
-if [ $? -eq 0 ]; then
+# Use the appropriate container based on the protocol selected.
+case ${IP_PROTO} in
+  rtp) VID_CONTAINER="rtp";;
+  tcp | udp) VID_CONTAINER="mpegts";;
+esac
+
 TEST_NVENC=$(nvidia-smi -q | grep Encoder | wc -l)
 TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')
 
