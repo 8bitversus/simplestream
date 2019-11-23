@@ -16,10 +16,10 @@ if [ "${LAUNCHER}" == "play-stream" ]; then
     mpv --profile=low-latency --title="mpv: ${LAUNCHER}" ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
   else
     ffplay -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
-      -fflags nobuffer -flags low_delay -strict experimental -sync ext -framedrop -window_title "ffplay: ${LAUNCHER}" -i ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
+      -fflags nobuffer+fastseek+flush_packets -flags low_delay -strict experimental -sync ext -framedrop -window_title "ffplay: ${LAUNCHER}" -i ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
   fi
 elif [ "${LAUNCHER}" == "record-stream" ]; then
   # Record a video stream in a Matroska container.
   ffmpeg -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
-    -fflags nobuffer -flags low_delay -strict experimental -i ${IP_PROTO}://${IP_ADDR}:${IP_PORT} -c:a copy -c:v copy "${LAUNCHER}-${STAMP}.mkv"
+    -fflags nobuffer+fastseek+flush_packets -flags low_delay -strict experimental -i ${IP_PROTO}://${IP_ADDR}:${IP_PORT} -c:a copy -c:v copy "${LAUNCHER}-${STAMP}.mkv"
 fi
