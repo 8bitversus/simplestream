@@ -47,18 +47,24 @@ rm -f ${TMP_XWININFO}
 VID_CAPTURE=":0.0+${CAPTURE_X},${CAPTURE_Y}"
 VID_SIZE="${CAPTURE_WIDTH}x${CAPTURE_HEIGHT}"
 
+if [ -e /snap/bin/ffmpeg ]; then
+  FFMPEG="/snap/bin/ffmpeg"
+else
+  FFMPEG=$(which ffmpeg)
+fi
+
 if [ "${LAUNCHER}" == "stream" ]; then
   # Stream the window and loopback audio as a low latency MPEG2-TS
   # - https://dennismungai.wordpress.com/2018/02/06/low-latency-live-streaming-for-your-desktop-using-ffmpeg-and-netcat/
   # - https://www.ostechnix.com/20-ffmpeg-commands-beginners/
-  ffmpeg -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
+  ${FFMPEG} -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
     -f pulse -thread_queue_size 64 -i ${AUD_DEVICE} \
     -f x11grab -draw_mouse ${VID_MOUSE} -video_size ${VID_SIZE} -framerate ${VID_FPS} -i ${VID_CAPTURE} \
     -c:a aac -b:a 128k -ac 2 -ar 44100 \
     -c:v ${VID_CODEC} -pix_fmt yuv420p -preset ${VID_PRESET} -g ${VID_GOP} -tune zerolatency -bsf:v h264_mp4toannexb -f ${VID_CONTAINER} ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
 elif [ "${LAUNCHER}" == "capture" ]; then
   # Capture the window and loopback audio as H.264/AAC in a Matroska container
-  ffmpeg -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
+  ${FFMPEG} -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
     -f pulse -i ${AUD_DEVICE} \
     -f x11grab -draw_mouse ${VID_MOUSE} -video_size ${VID_SIZE} -framerate ${VID_FPS} -i ${VID_CAPTURE} \
     -c:a aac -b:a 128k -ac 2 -ar 44100 \
