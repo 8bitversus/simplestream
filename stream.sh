@@ -20,6 +20,10 @@ fi
 
 TEST_NVENC=$(${FFMPEG} -hide_banner -hwaccels | grep cuda)
 if [ $? -eq 0 ]; then
+TEST_NVENC=$(nvidia-smi -q | grep Encoder | wc -l)
+TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')
+
+if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]; then
   VID_CODEC="h264_nvenc"
 else
   VID_CODEC="libx264"
