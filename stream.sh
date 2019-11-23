@@ -21,7 +21,7 @@ case ${VID_CODEC} in
 esac
 
 # Framerate to stream and Group of Pictures (GOP)
-VID_FPS="60"
+VID_FPS="50"
 VID_GOP=$((VID_FPS * 2))
 
 # Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
