@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 IP_PROTO="udp"
-IP_PORT="23000"
+IP_PORT="4864"
 IP_ADDR="127.0.0.1"
 LAUNCHER=$(basename $0 .sh)
 STAMP=$(date +"%C%j-%H%M%S")
