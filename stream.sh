@@ -12,6 +12,14 @@ case ${IP_PROTO} in
   "udp") VID_CONTAINER="mpegts";;
 esac
 
+VID_CODEC="libx264"
+
+# Use the appropriate preset based on the encoider selected.
+case ${VID_CODEC} in
+  "h264_nvenc") VID_PRESET="llhq";;
+  "libx264") VID_PRESET="ultrafast";;
+esac
+
 # Framerate to stream and Group of Pictures (GOP)
 VID_FPS="60"
 VID_GOP=$((VID_FPS * 2))
@@ -47,12 +55,12 @@ if [ "${LAUNCHER}" == "stream" ]; then
     -f pulse -thread_queue_size 64 -i ${AUD_DEVICE} \
     -f x11grab -draw_mouse ${VID_MOUSE} -video_size ${VID_SIZE} -framerate ${VID_FPS} -i ${VID_CAPTURE} \
     -c:a aac -b:a 128k -ac 2 -ar 44100 \
-    -c:v libx264 -pix_fmt yuv420p -preset ultrafast -g ${VID_GOP} -tune zerolatency -bsf:v h264_mp4toannexb -f ${VID_CONTAINER} ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
+    -c:v ${VID_CODEC} -pix_fmt yuv420p -preset ${VID_PRESET} -g ${VID_GOP} -tune zerolatency -bsf:v h264_mp4toannexb -f ${VID_CONTAINER} ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
 elif [ "${LAUNCHER}" == "capture" ]; then
   # Capture the window and loopback audio as H.264/AAC in a Matroska container
   ffmpeg -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
     -f pulse -i ${AUD_DEVICE} \
     -f x11grab -draw_mouse ${VID_MOUSE} -video_size ${VID_SIZE} -framerate ${VID_FPS} -i ${VID_CAPTURE} \
     -c:a aac -b:a 128k -ac 2 -ar 44100 \
-    -c:v libx264 -r ${VID_FPS} -pix_fmt yuv420p -preset ultrafast "${LAUNCHER}-${STAMP}.mkv"
+    -c:v ${VID_CODEC} -r ${VID_FPS} -pix_fmt yuv420p -preset ${VID_PRESET} "${LAUNCHER}-${STAMP}.mkv"
 fi
