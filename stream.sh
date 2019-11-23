@@ -45,13 +45,13 @@ if [ "${LAUNCHER}" == "stream" ]; then
   ffmpeg -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
     -f pulse -thread_queue_size 64 -i ${AUD_DEVICE} \
     -f x11grab -draw_mouse ${VID_MOUSE} -video_size ${VID_SIZE} -framerate ${VID_FPS} -i ${VID_CAPTURE} \
-    -acodec aac -ac 2 -ar 44100 -b:a 128k \
+    -c:a aac -b:a 128k -ac 2 -ar 44100 \
     -c:v libx264 -pix_fmt yuv420p -preset ultrafast -g ${VID_GOP} -tune zerolatency -bsf:v h264_mp4toannexb -f ${VID_CONTAINER} ${IP_PROTO}://${IP_ADDR}:${IP_PORT}
 elif [ "${LAUNCHER}" == "capture" ]; then
   # Capture the window and loopback audio as H.264/AAC in a Matroska container
   ffmpeg -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
     -f pulse -i ${AUD_DEVICE} \
     -f x11grab -draw_mouse ${VID_MOUSE} -video_size ${VID_SIZE} -framerate ${VID_FPS} -i ${VID_CAPTURE} \
-    -acodec aac -ac 2 -ar 44100 -b:a 128k \
-    -pix_fmt yuv420p -g ${VID_GOP} -vcodec libx264 -preset ultrafast "${LAUNCHER}-${STAMP}.mkv"
+    -c:a aac -b:a 128k -ac 2 -ar 44100 \
+    -c:v libx264 -r ${VID_FPS} -pix_fmt yuv420p -preset ultrafast "${LAUNCHER}-${STAMP}.mkv"
 fi
