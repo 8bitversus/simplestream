@@ -44,7 +44,7 @@ CAPTURE_WIDTH=$(sed -n -e "s/^ \+Width: \+\([0-9]\+\).*/\1/p" ${TMP_XWININFO})
 CAPTURE_HEIGHT=$(sed -n -e "s/^ \+Height: \+\([0-9]\+\).*/\1/p" ${TMP_XWININFO})
 [ $((CAPTURE_HEIGHT%2)) -ne 0 ] && ((CAPTURE_HEIGHT--))
 rm -f ${TMP_XWININFO}
-VID_CAPTURE=":0.0+${CAPTURE_X},${CAPTURE_Y}"
+VID_CAPTURE="${DISPLAY}+${CAPTURE_X},${CAPTURE_Y}"
 VID_SIZE="${CAPTURE_WIDTH}x${CAPTURE_HEIGHT}"
 
 if [ -e /snap/bin/ffmpeg ]; then
