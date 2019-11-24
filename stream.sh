@@ -103,21 +103,6 @@ case ${IP_PROTO} in
     ;;
 esac
 
-TEST_NVENC=$(nvidia-smi -q | grep Encoder | wc -l)
-TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')
-
-# TODO: Tune the encoders
-# - https://devblogs.nvidia.com/turing-h264-video-encoding-speed-and-quality/
-# - https://superuser.com/questions/1296374/best-settings-for-ffmpeg-with-nvenc
-if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]  &&  [ "${VID_CODEC}" == "h264_nvenc" ]; then
-  VID_PRESET="llhp"
-  VID_CODEC_TUNING="-rc cbr_ld_hq -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC}"
-else
-  VID_CODEC="libx264"
-  VID_PRESET="ultrafast"
-  VID_CODEC_TUNING="-x264opts no-sliced-threads -tune zerolatency -bsf:v h264_mp4toannexb -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC}"
-fi
-
 # Get the audio loopback device to record from; excludes Microphones.
 # - https://unix.stackexchange.com/questions/488063/record-screen-and-internal-audio-with-ffmpeg
 # - https://askubuntu.com/questions/516899/how-do-i-stream-computer-audio-only-with-ffmpeg
@@ -137,6 +122,22 @@ CAPTURE_HEIGHT=$(sed -n -e "s/^ \+Height: \+\([0-9]\+\).*/\1/p" ${TMP_XWININFO})
 rm -f ${TMP_XWININFO}
 VID_CAPTURE="${DISPLAY}+${CAPTURE_X},${CAPTURE_Y}"
 VID_SIZE="${CAPTURE_WIDTH}x${CAPTURE_HEIGHT}"
+
+TEST_NVENC=$(nvidia-smi -q | grep Encoder | wc -l)
+TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')
+
+# TODO: Tune the encoders
+# - https://devblogs.nvidia.com/turing-h264-video-encoding-speed-and-quality/
+# - https://superuser.com/questions/1296374/best-settings-for-ffmpeg-with-nvenc
+if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]  &&  [ "${VID_CODEC}" == "h264_nvenc" ]; then
+  VID_PRESET="llhp"
+  VID_CODEC_TUNING="-rc cbr_ld_hq -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC}"
+else
+  echo "WARNING! nvenc does nopt appear to be available. Falling back to libx264."
+  VID_CODEC="libx264"
+  VID_PRESET="ultrafast"
+  VID_CODEC_TUNING="-x264opts no-sliced-threads -tune zerolatency -bsf:v h264_mp4toannexb -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC}"
+fi
 
 if [ "${LAUNCHER}" == "stream" ]; then
   echo "Streaming ${VID_CODEC}: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
