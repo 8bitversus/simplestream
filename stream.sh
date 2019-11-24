@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-IP_PROTO="udp"
+IP_PROTO="tcp"
 IP_PORT="4864"
 IP_ADDR="127.0.0.1"
 LAUNCHER=$(basename $0 .sh)
@@ -21,7 +21,7 @@ case ${IP_PROTO} in
     ;;
   tcp)
     VID_CONTAINER="mpegts"
-    STREAM_OPTIONS="?listen"
+    STREAM_OPTIONS=""
     ;;
   udp)
     VID_CONTAINER="mpegts"
@@ -88,7 +88,7 @@ if [ "${LAUNCHER}" == "stream" ]; then
     -f pulse -thread_queue_size 128 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_DEVICE} \
     -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} -g ${VID_GOP} ${VID_CODEC_TUNING} \
     -c:a aac -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental \
-    -f ${VID_CONTAINER} ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}
+    -f ${VID_CONTAINER} "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
 elif [ "${LAUNCHER}" == "capture" ]; then
   # Capture the window and loopback audio as H.264/AAC in a Matroska container
   ${FFMPEG} -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
