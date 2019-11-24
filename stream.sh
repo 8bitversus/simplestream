@@ -10,7 +10,7 @@ LOG_LEVEL="warning"
 
 # Select the video codec; change to "libx264" for software encoding. Derive other encoding configuration.
 VID_CODEC="h264_nvenc"
-VID_FPS="30"
+VID_FPS="60"
 VID_GOP=$((VID_FPS * 2))
 VID_BITRATE="640k"
 VID_COLORSPACE="yuv420p"
