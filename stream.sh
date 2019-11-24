@@ -26,18 +26,15 @@ VID_VSYNC=0
 AUD_SAMPLERATE=22050
 AUD_BITRATE=96k
 
-if [ ! -e "${FFMPEG}" ]; then
-  FFMPEG=$(which ffmpeg)
-fi
-
 function usage {
   echo
   echo "Usage"
-  echo "  ${LAUNCHER} [--bitrate 640k] [--codec libx264] [--fps 60 ] [--ip 192.168.0.1] [--port 4864] [--protocol tcp|udp] [--help]"
+  echo "  ${LAUNCHER} [--bitrate 640k] [--codec libx264] [--ffmpeg /snap/bin/ffmpeg ] [--fps 60 ] [--ip 192.168.0.1] [--port 4864] [--protocol tcp|udp] [--help]"
   echo
   echo "You can also pass optional parameters"
   echo "  --bitrate  : Set video codec bitrate for the stream."
   echo "  --codec    : Set video codec for the stream. [libx264|h264_nvenc]"
+  echo "  --ffmpeg   : Set the full path to ffmpeg."
   echo "  --fps      : Set framerate to stream at."
   echo "  --ip       : Set the IP address to stream to."
   echo "  --port     : Set the tcp/udp port to stream to."
@@ -59,6 +56,11 @@ while [ $# -gt 0 ]; do
       VID_CODEC="$2"
       shift
       shift;;
+    -ffmpeg|--ffmpeg)
+      FFMPEG="$2"
+      shift
+      shift
+      ;;
     -fps|--fps)
       VID_FPS="$2"
       shift
@@ -82,6 +84,11 @@ while [ $# -gt 0 ]; do
       usage;;
   esac
 done
+
+if [ ! -e "${FFMPEG}" ]; then
+  echo "ERROR! Could not find ${FFMPEG}. Quitting."
+  exit 1
+fi
 
 # Use the appropriate container based on the protocol selected.
 case ${IP_PROTO} in
