@@ -60,6 +60,8 @@ VID_COLORSPACE="yuv420p"
 # - https://unix.stackexchange.com/questions/488063/record-screen-and-internal-audio-with-ffmpeg
 # - https://askubuntu.com/questions/516899/how-do-i-stream-computer-audio-only-with-ffmpeg
 AUD_DEVICE=$(pacmd list-sources | grep -PB 1 "analog.*monitor>" | head -n 1 | cut -d':' -f2 | sed -e 's/ //g')
+AUD_SAMPLERATE=22050
+AUD_BITRATE=96k
 
 # Get the window we want to stream
 # - https://unix.stackexchange.com/questions/14159/how-do-i-find-the-window-dimensions-and-position-accurately-including-decoration
