@@ -52,7 +52,8 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-if [ ! -e "${PLAYER}" ]; then
+TEST_PLAYER=$(which "${PLAYER}")
+if [ $? -eq 1 ]; then
   echo "ERROR! Could not find ${PLAYER}. Quitting."
   exit 1
 fi
