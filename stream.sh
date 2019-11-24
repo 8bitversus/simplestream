@@ -34,8 +34,10 @@ TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')
 
 if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]; then
   VID_CODEC="h264_nvenc"
+  VID_CODEC_TUNING=""
 else
   VID_CODEC="libx264"
+  VID_CODEC_TUNING=" -tune zerolatency -bsf:v h264_mp4toannexb "
 fi
 
 # Use the appropriate preset based on the encoider selected.
