@@ -30,6 +30,7 @@ if [ "${LAUNCHER}" == "play-stream" ]; then
       -fflags nobuffer+fastseek+flush_packets -flags low_delay -sync ext -framedrop -window_title "${LAUNCHER} - ffplay" -i "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
   fi
 elif [ "${LAUNCHER}" == "record-stream" ]; then
+  echo "Recording: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
   # Record a video stream in a Matroska container.
   ffmpeg -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
     -fflags nobuffer+fastseek+flush_packets -flags low_delay -strict experimental -i ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS} -c:a copy -c:v copy "${LAUNCHER}-${STAMP}.mkv"

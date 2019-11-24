@@ -79,6 +79,7 @@ VID_CAPTURE="${DISPLAY}+${CAPTURE_X},${CAPTURE_Y}"
 VID_SIZE="${CAPTURE_WIDTH}x${CAPTURE_HEIGHT}"
 
 if [ "${LAUNCHER}" == "stream" ]; then
+  echo "Streaming ${VID_CODEC}: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
   # Stream the window and loopback audio as a low latency MPEG2-TS
   # - https://dennismungai.wordpress.com/2018/02/06/low-latency-live-streaming-for-your-desktop-using-ffmpeg-and-netcat/
   # - https://www.ostechnix.com/20-ffmpeg-commands-beginners/
@@ -90,6 +91,7 @@ if [ "${LAUNCHER}" == "stream" ]; then
     -c:a aac -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental \
     -f ${VID_CONTAINER} "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
 elif [ "${LAUNCHER}" == "capture" ]; then
+  echo "Capturing ${VID_CODEC}: ${LAUNCHER}-${STAMP}.mkv"
   # Capture the window and loopback audio as H.264/AAC in a Matroska container
   ${FFMPEG} -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
     -video_size ${VID_SIZE} -framerate ${VID_FPS} \
