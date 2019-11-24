@@ -5,7 +5,7 @@ IP_PORT="4864"
 IP_ADDR="127.0.0.1"
 LAUNCHER=$(basename $0 .sh)
 STAMP=$(date +"%C%j-%H%M%S")
-LOG_LEVEL="panic"
+LOG_LEVEL="warning"
 
 case ${IP_PROTO} in
   rtp)
