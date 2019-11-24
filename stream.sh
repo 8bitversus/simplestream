@@ -10,8 +10,15 @@ LOG_LEVEL="warning"
 # Framerate to stream and Group of Pictures (GOP)
 VID_FPS="30"
 VID_GOP=$((VID_FPS * 2))
-VID_BITRATE="512k"
+VID_BITRATE="640k"
 VID_BUFSIZE=$((VID_BITRATE / VID_FPS))
+VID_COLORSPACE="yuv420p"
+# Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
+VID_MOUSE=0
+
+# Audio encoding settings
+AUD_SAMPLERATE=22050
+AUD_BITRATE=96k
 
 if [ -e /snap/bin/ffmpeg ]; then
   FFMPEG="/snap/bin/ffmpeg"
@@ -51,18 +58,10 @@ else
   VID_CODEC_TUNING="-x264opts no-sliced-threads -tune zerolatency -bsf:v h264_mp4toannexb -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync 0"
 fi
 
-# Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
-VID_MOUSE=0
-
-# Colour space
-VID_COLORSPACE="yuv420p"
-
 # Get the audio loopback device to record from; excludes Microphones.
 # - https://unix.stackexchange.com/questions/488063/record-screen-and-internal-audio-with-ffmpeg
 # - https://askubuntu.com/questions/516899/how-do-i-stream-computer-audio-only-with-ffmpeg
 AUD_DEVICE=$(pacmd list-sources | grep -PB 1 "analog.*monitor>" | head -n 1 | cut -d':' -f2 | sed -e 's/ //g')
-AUD_SAMPLERATE=22050
-AUD_BITRATE=96k
 
 # Get the window we want to stream
 # - https://unix.stackexchange.com/questions/14159/how-do-i-find-the-window-dimensions-and-position-accurately-including-decoration
@@ -83,7 +82,6 @@ if [ "${LAUNCHER}" == "stream" ]; then
   echo "Streaming ${VID_CODEC}: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
   # Stream the window and loopback audio as a low latency MPEG2-TS
   # - https://dennismungai.wordpress.com/2018/02/06/low-latency-live-streaming-for-your-desktop-using-ffmpeg-and-netcat/
-  # - https://www.ostechnix.com/20-ffmpeg-commands-beginners/
   ${FFMPEG} -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
     -video_size ${VID_SIZE} -framerate ${VID_FPS} \
     -f x11grab -thread_queue_size 128 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
