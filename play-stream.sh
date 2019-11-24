@@ -16,7 +16,8 @@ case ${IP_PROTO} in
     STREAM_OPTIONS="?listen"
     ;;
   udp)
-    STREAM_OPTIONS="?fifo_size=10240"
+    # Add "?fifo_size=10240" if you are experiencing packet loss or video corruption. This will add latency.
+    STREAM_OPTIONS=""
     ;;
 esac
 

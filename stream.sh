@@ -39,7 +39,8 @@ case ${IP_PROTO} in
     ;;
   udp)
     VID_CONTAINER="mpegts"
-    STREAM_OPTIONS="?fifo_size=10240"
+    # Add "?fifo_size=10240" if you are experiencing packet loss or video corruption. This will add latency.
+    STREAM_OPTIONS=""
     ;;
 esac
 
