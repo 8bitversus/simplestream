@@ -141,7 +141,7 @@ if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]  &&  [ "${VID_CODEC}
 else
   echo "WARNING! nvenc does nopt appear to be available. Falling back to libx264."
   VID_CODEC="libx264"
-  VID_PRESET="ultrafast"
+  VID_PRESET="veryfast"
   VID_CODEC_TUNING="-x264opts no-sliced-threads -tune zerolatency -bsf:v h264_mp4toannexb -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC}"
 fi
 
