@@ -60,8 +60,7 @@ while [ $# -gt 0 ]; do
     -ffmpeg|--ffmpeg)
       FFMPEG="$2"
       shift
-      shift
-      ;;
+      shift;;
     -fps|--fps)
       VID_FPS="$2"
       shift

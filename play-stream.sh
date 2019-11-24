@@ -34,8 +34,7 @@ while [ $# -gt 0 ]; do
     -player|--player)
       PLAYER="$2"
       shift
-      shift
-      ;;
+      shift;;
     -port|--port)
       IP_PORT="$2"
       shift
