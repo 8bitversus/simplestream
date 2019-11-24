@@ -32,19 +32,19 @@ AUD_BITRATE=96k
 function usage {
   echo
   echo "Usage"
-  echo "  ${LAUNCHER} [--bitrate 640k] [--codec libx264] [--ffmpeg /snap/bin/ffmpeg ]"
-  echo "              [--fps 60 ] [--ip 192.168.0.1] [--mouse]\n[--port 4864]"
-  echo "              [--protocol tcp|udp] [--vsync] [--help]"
+  echo "  ${LAUNCHER} [--ffmpeg /snap/bin/ffmpeg ] [--fps 60 ] [--ip 192.168.0.1]"
+  echo "              [--mouse] [--port 4864] [--protocol tcp|udp]"
+  echo "              [--vbitrate 640k] [--vcodec libx264] [--vsync] [--help]"
   echo
   echo "You can also pass optional parameters"
-  echo "  --bitrate  : Set video codec bitrate for the stream."
-  echo "  --codec    : Set video codec for the stream. [libx264|h264_nvenc]"
   echo "  --ffmpeg   : Set the full path to ffmpeg."
   echo "  --fps      : Set framerate to stream at."
   echo "  --ip       : Set the IP address to stream to."
   echo "  --mouse    : Enable capture of mouse cursor; disabled by default."
   echo "  --port     : Set the tcp/udp port to stream to."
   echo "  --protocol : Set the protocol to stream over. [tcp|udp]"
+  echo "  --vbitrate : Set video codec bitrate for the stream."
+  echo "  --vcodec   : Set video codec for the stream. [libx264|h264_nvenc]"
   echo "  --vsync    : Enable vsync in the video encoder; disabled by default."
   echo "  --help     : This help."
   echo
