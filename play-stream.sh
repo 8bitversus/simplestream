@@ -9,36 +9,29 @@ STAMP=$(date +"%C%j-%H%M%S")
 LOG_LEVEL="warning"
 WIN_TITLE="${LAUNCHER} - ${PLAYER}"
 
-case ${IP_PROTO} in
-  rtp)
-    STREAM_OPTIONS=""
-    ;;
-  tcp)
-    STREAM_OPTIONS="?listen"
-    ;;
-  udp)
-    # Add "?fifo_size=10240" if you are experiencing packet loss or video corruption. This will add latency.
-    STREAM_OPTIONS=""
-    ;;
-esac
-
 function usage {
   echo
   echo "Usage"
-  echo "  ${LAUNCHER} [--ip 192.168.0.1] [--help]"
+  echo "  ${LAUNCHER} [--ip 192.168.0.1] [--protocol tcp|udp] [--help]"
   echo
   echo "You can also pass optional parameters"
-  echo "  --ip     : Set the IP address to play from."
-  echo "  --help   : This help."
+  echo "  --ip       : Set the IP address to play from."
+  echo "  --protocol : Set the protocol to play over. [tcp|udp]"
+  echo "  --help     : This help."
   echo
   exit 1
 }
 
+# TODO - validate the inputs
 # Check for optional parameters
 while [ $# -gt 0 ]; do
   case "${1}" in
     -i|--i|-ip|--ip)
       IP_ADDR="$2"
+      shift
+      shift;;
+    -p|--p|-protocol|--protocol)
+      IP_PROTO="$2"
       shift
       shift;;
     -h|--h|-help|--help|-?)
@@ -48,6 +41,16 @@ while [ $# -gt 0 ]; do
       usage;;
   esac
 done
+
+case ${IP_PROTO} in
+  tcp)
+    STREAM_OPTIONS="?listen"
+    ;;
+  udp)
+    # Add "?fifo_size=10240" if you are experiencing packet loss or video corruption. This will add latency.
+    STREAM_OPTIONS=""
+    ;;
+esac
 
 if [ "${LAUNCHER}" == "play-stream" ]; then
   case ${PLAYER} in

@@ -30,12 +30,41 @@ if [ ! -e "${FFMPEG}" ]; then
   FFMPEG=$(which ffmpeg)
 fi
 
+function usage {
+  echo
+  echo "Usage"
+  echo "  ${LAUNCHER} [--ip 192.168.0.1] [--protocol tcp|udp] [--help]"
+  echo
+  echo "You can also pass optional parameters"
+  echo "  --ip       : Set the IP address to stream to."
+  echo "  --protocol : Set the protocol to stream over. [tcp|udp]"
+  echo "  --help     : This help."
+  echo
+  exit 1
+}
+
+# TODO - validate the inputs
+# Check for optional parameters
+while [ $# -gt 0 ]; do
+  case "${1}" in
+    -i|--i|-ip|--ip)
+      IP_ADDR="$2"
+      shift
+      shift;;
+    -p|--p|-protocol|--protocol)
+      IP_PROTO="$2"
+      shift
+      shift;;
+    -h|--h|-help|--help|-?)
+      usage;;
+    *)
+      echo "ERROR! \"${1}\" is not s supported parameter."
+      usage;;
+  esac
+done
+
 # Use the appropriate container based on the protocol selected.
 case ${IP_PROTO} in
-  rtp)
-    VID_CONTAINER="rtp"
-    STREAM_OPTIONS=""
-    ;;
   tcp)
     VID_CONTAINER="mpegts"
     STREAM_OPTIONS=""
@@ -46,33 +75,6 @@ case ${IP_PROTO} in
     STREAM_OPTIONS=""
     ;;
 esac
-
-function usage {
-  echo
-  echo "Usage"
-  echo "  ${LAUNCHER} [--ip 192.168.0.1] [--help]"
-  echo
-  echo "You can also pass optional parameters"
-  echo "  --ip     : Set the IP address to stream to."
-  echo "  --help   : This help."
-  echo
-  exit 1
-}
-
-# Check for optional parameters
-while [ $# -gt 0 ]; do
-  case "${1}" in
-    -i|--i|-ip|--ip)
-      IP_ADDR="$2"
-      shift
-      shift;;
-    -h|--h|-help|--help|-?)
-      usage;;
-    *)
-      echo "ERROR! \"${1}\" is not s supported parameter."
-      usage;;
-  esac
-done
 
 TEST_NVENC=$(nvidia-smi -q | grep Encoder | wc -l)
 TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')
