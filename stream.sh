@@ -33,9 +33,10 @@ fi
 function usage {
   echo
   echo "Usage"
-  echo "  ${LAUNCHER} [--fps 60 ] [--ip 192.168.0.1] [--protocol tcp|udp] [--help]"
+  echo "  ${LAUNCHER} [--codec libx264] [--fps 60 ] [--ip 192.168.0.1] [--protocol tcp|udp] [--help]"
   echo
   echo "You can also pass optional parameters"
+  echo "  --codec    : Set video codec for the stream. [libx264|h264_nvenc]"
   echo "  --fps      : Set framerate to stream at."
   echo "  --ip       : Set the IP address to stream to."
   echo "  --protocol : Set the protocol to stream over. [tcp|udp]"
@@ -48,6 +49,10 @@ function usage {
 # Check for optional parameters
 while [ $# -gt 0 ]; do
   case "${1}" in
+    -c|--c|-codec|--codec)
+      VID_CODEC="$2"
+      shift
+      shift;;
     -f|--f|-fps|--fps)
       VID_FPS="$2"
       shift
