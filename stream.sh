@@ -29,7 +29,7 @@ AUD_BITRATE=96k
 function usage {
   echo
   echo "Usage"
-  echo "  ${LAUNCHER} [--bitrate 640k] [--codec libx264] [--ffmpeg /snap/bin/ffmpeg ] [--fps 60 ] [--ip 192.168.0.1] [--port 4864] [--protocol tcp|udp] [--help]"
+  echo "  ${LAUNCHER} [--bitrate 640k] [--codec libx264] [--ffmpeg /snap/bin/ffmpeg ] [--fps 60 ] [--ip 192.168.0.1] [--port 4864] [--protocol tcp|udp] [--vsync] [--help]"
   echo
   echo "You can also pass optional parameters"
   echo "  --bitrate  : Set video codec bitrate for the stream."
@@ -39,6 +39,7 @@ function usage {
   echo "  --ip       : Set the IP address to stream to."
   echo "  --port     : Set the tcp/udp port to stream to."
   echo "  --protocol : Set the protocol to stream over. [tcp|udp]"
+  echo "  --vsync    : Enable vsync in the video encoder."
   echo "  --help     : This help."
   echo
   exit 1
@@ -76,6 +77,9 @@ while [ $# -gt 0 ]; do
     -protocol|--protocol)
       IP_PROTO="$2"
       shift
+      shift;;
+    -vsync|--vsync)
+      VID_VSYNC=1
       shift;;
     -h|--h|-help|--help)
       usage;;
