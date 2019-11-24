@@ -58,13 +58,8 @@ if [ $? -eq 1 ]; then
 fi
 
 case ${IP_PROTO} in
-  tcp)
-    STREAM_OPTIONS="?listen"
-    ;;
-  udp)
-    # Add "?fifo_size=10240" if you are experiencing packet loss or video corruption. This will add latency.
-    STREAM_OPTIONS=""
-    ;;
+  tcp) STREAM_OPTIONS="?listen";;
+  udp) STREAM_OPTIONS="";;
 esac
 
 if [ "${LAUNCHER}" == "play-stream" ]; then
