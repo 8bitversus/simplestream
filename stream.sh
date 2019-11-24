@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+FFMPEG="/snap/bin/ffmpeg"
 IP_PROTO="tcp"
 IP_PORT="4864"
 IP_ADDR="127.0.0.1"
@@ -25,9 +26,7 @@ VID_VSYNC=0
 AUD_SAMPLERATE=22050
 AUD_BITRATE=96k
 
-if [ -e /snap/bin/ffmpeg ]; then
-  FFMPEG="/snap/bin/ffmpeg"
-else
+if [ ! -e "${FFMPEG}" ]; then
   FFMPEG=$(which ffmpeg)
 fi
 
