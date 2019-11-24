@@ -13,7 +13,6 @@ VID_CODEC="h264_nvenc"
 VID_FPS="30"
 VID_GOP=$((VID_FPS * 2))
 VID_BITRATE="640k"
-VID_BUFSIZE=$((VID_BITRATE / VID_FPS))
 VID_COLORSPACE="yuv420p"
 #  Format colour matrix to BT.709 to prevent colours "washing out"
 #  - https://stackoverflow.com/questions/37255690/ffmpeg-format-settings-matrix-bt709
@@ -47,6 +46,33 @@ case ${IP_PROTO} in
     STREAM_OPTIONS=""
     ;;
 esac
+
+function usage {
+  echo
+  echo "Usage"
+  echo "  ${LAUNCHER} [--ip 192.168.0.1] [--help]"
+  echo
+  echo "You can also pass optional parameters"
+  echo "  --ip     : Set the IP address to stream to."
+  echo "  --help   : This help."
+  echo
+  exit 1
+}
+
+# Check for optional parameters
+while [ $# -gt 0 ]; do
+  case "${1}" in
+    -i|--i|-ip|--ip)
+      IP_ADDR="$2"
+      shift
+      shift;;
+    -h|--h|-help|--help|-?)
+      usage;;
+    *)
+      echo "ERROR! \"${1}\" is not s supported parameter."
+      usage;;
+  esac
+done
 
 TEST_NVENC=$(nvidia-smi -q | grep Encoder | wc -l)
 TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')

@@ -22,6 +22,33 @@ case ${IP_PROTO} in
     ;;
 esac
 
+function usage {
+  echo
+  echo "Usage"
+  echo "  ${LAUNCHER} [--ip 192.168.0.1] [--help]"
+  echo
+  echo "You can also pass optional parameters"
+  echo "  --ip     : Set the IP address to play from."
+  echo "  --help   : This help."
+  echo
+  exit 1
+}
+
+# Check for optional parameters
+while [ $# -gt 0 ]; do
+  case "${1}" in
+    -i|--i|-ip|--ip)
+      IP_ADDR="$2"
+      shift
+      shift;;
+    -h|--h|-help|--help|-?)
+      usage;;
+    *)
+      echo "ERROR! \"${1}\" is not s supported parameter."
+      usage;;
+  esac
+done
+
 if [ "${LAUNCHER}" == "play-stream" ]; then
   case ${PLAYER} in
     ffplay)
