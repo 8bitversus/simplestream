@@ -11,11 +11,12 @@ LOG_LEVEL="warning"
 function usage {
   echo
   echo "Usage"
-  echo "  ${LAUNCHER} [--ip 192.168.0.1] [--protocol tcp|udp] [--help]"
+  echo "  ${LAUNCHER} [--ip 192.168.0.1] [--player [ffplay|mpv] [--port 4864] [--protocol tcp|udp] [--help]"
   echo
   echo "You can also pass optional parameters"
   echo "  --ip       : Set the IP address to play from."
   echo "  --player   : Set the player. [ffplay|mpv]"
+  echo "  --port     : Set the tcp/udp port to connect to."
   echo "  --protocol : Set the protocol to play over. [tcp|udp]"
   echo "  --help     : This help."
   echo
@@ -32,6 +33,10 @@ while [ $# -gt 0 ]; do
       shift;;
     -player|--player)
       PLAYER="$2"
+      shift
+      shift;;
+    -port|--port)
+      IP_PORT="$2"
       shift
       shift;;
     -protocol|--protocol)

@@ -33,13 +33,14 @@ fi
 function usage {
   echo
   echo "Usage"
-  echo "  ${LAUNCHER} [--bitrate 640k] [--codec libx264] [--fps 60 ] [--ip 192.168.0.1] [--protocol tcp|udp] [--help]"
+  echo "  ${LAUNCHER} [--bitrate 640k] [--codec libx264] [--fps 60 ] [--ip 192.168.0.1] [--port 4864] [--protocol tcp|udp] [--help]"
   echo
   echo "You can also pass optional parameters"
   echo "  --bitrate  : Set video codec bitrate for the stream."
   echo "  --codec    : Set video codec for the stream. [libx264|h264_nvenc]"
   echo "  --fps      : Set framerate to stream at."
   echo "  --ip       : Set the IP address to stream to."
+  echo "  --port     : Set the tcp/udp port to stream to."
   echo "  --protocol : Set the protocol to stream over. [tcp|udp]"
   echo "  --help     : This help."
   echo
@@ -64,6 +65,10 @@ while [ $# -gt 0 ]; do
       shift;;
     -ip|--ip)
       IP_ADDR="$2"
+      shift
+      shift;;
+    -port|--port)
+      IP_PORT="$2"
       shift
       shift;;
     -protocol|--protocol)
