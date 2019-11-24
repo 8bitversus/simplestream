@@ -8,14 +8,15 @@ LAUNCHER=$(basename $0 .sh)
 STAMP=$(date +"%C%j-%H%M%S")
 LOG_LEVEL="warning"
 
-# Framerate to stream and Group of Pictures (GOP)
+# Select the video codec; change to "libx264" for software encoding. Derive other encoding configuration.
+VID_CODEC="h264_nvenc"
 VID_FPS="30"
 VID_GOP=$((VID_FPS * 2))
-# Select the video codec; change to "libx264" for software encoding.
-VID_CODEC="h264_nvenc"
 VID_BITRATE="640k"
 VID_BUFSIZE=$((VID_BITRATE / VID_FPS))
 VID_COLORSPACE="yuv420p"
+#  Format colour matrix to BT.709 to prevent colours "washing out"
+#  - https://stackoverflow.com/questions/37255690/ffmpeg-format-settings-matrix-bt709
 VID_BT709="-vf scale=out_color_matrix=bt709 -color_primaries bt709 -color_trc bt709 -colorspace bt709"
 # Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
 VID_MOUSE=0
