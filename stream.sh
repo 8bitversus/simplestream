@@ -70,7 +70,7 @@ AUD_DEVICE=$(pacmd list-sources | grep -PB 1 "analog.*monitor>" | head -n 1 | cu
 # Get the window we want to stream
 # - https://unix.stackexchange.com/questions/14159/how-do-i-find-the-window-dimensions-and-position-accurately-including-decoration
 TMP_XWININFO=$(mktemp -u)
-echo -e "Please select the window about which you\nwould like information by clicking the\nmouse in that window."
+echo -e "Please select the window you\nwould like to stream/capture by clicking the\nmouse in that window."
 xwininfo | tee ${TMP_XWININFO}
 CAPTURE_X=$(sed -n -e "s/^ \+Absolute upper-left X: \+\([0-9]\+\).*/\1/p" ${TMP_XWININFO})
 CAPTURE_Y=$(sed -n -e "s/^ \+Absolute upper-left Y: \+\([0-9]\+\).*/\1/p" ${TMP_XWININFO})
