@@ -34,7 +34,12 @@ while [ $# -gt 0 ]; do
     -player|--player)
       PLAYER="$2"
       shift
-      shift;;
+      shift
+      if [ ! -e "${PLAYER}" ]; then
+        echo "ERROR! Could not find ${PLAYER}. Quitting."
+        exit 1
+      fi
+      ;;
     -port|--port)
       IP_PORT="$2"
       shift
