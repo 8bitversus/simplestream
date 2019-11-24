@@ -13,6 +13,7 @@ VID_GOP=$((VID_FPS * 2))
 VID_BITRATE="640k"
 VID_BUFSIZE=$((VID_BITRATE / VID_FPS))
 VID_COLORSPACE="yuv420p"
+VID_BT709="-vf scale=out_color_matrix=bt709 -color_primaries bt709 -color_trc bt709 -colorspace bt709"
 # Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
 VID_MOUSE=0
 
@@ -86,7 +87,7 @@ if [ "${LAUNCHER}" == "stream" ]; then
     -video_size ${VID_SIZE} -framerate ${VID_FPS} \
     -f x11grab -thread_queue_size 128 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
     -f pulse -thread_queue_size 128 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_DEVICE} \
-    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} ${VID_CODEC_TUNING} \
+    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} ${VID_CODEC_TUNING} ${VID_BT709} \
     -c:a aac -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental \
     -f ${VID_CONTAINER} "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
 elif [ "${LAUNCHER}" == "capture" ]; then
@@ -96,7 +97,7 @@ elif [ "${LAUNCHER}" == "capture" ]; then
     -video_size ${VID_SIZE} -framerate ${VID_FPS} \
     -f x11grab -thread_queue_size 128 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
     -f pulse -thread_queue_size 128 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_DEVICE} \
-    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} ${VID_CODEC_TUNING} \
+    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} ${VID_CODEC_TUNING} ${VID_BT709} \
     -c:a aac -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental \
     "${LAUNCHER}-${STAMP}.mkv"
 fi
