@@ -7,7 +7,6 @@ IP_ADDR="127.0.0.1"
 LAUNCHER=$(basename $0 .sh)
 STAMP=$(date +"%C%j-%H%M%S")
 LOG_LEVEL="warning"
-WIN_TITLE="${LAUNCHER} - ${PLAYER}"
 
 function usage {
   echo
@@ -16,6 +15,7 @@ function usage {
   echo
   echo "You can also pass optional parameters"
   echo "  --ip       : Set the IP address to play from."
+  echo "  --player   : Set the player. [ffplay|mpv]"
   echo "  --protocol : Set the protocol to play over. [tcp|udp]"
   echo "  --help     : This help."
   echo
@@ -28,6 +28,10 @@ while [ $# -gt 0 ]; do
   case "${1}" in
     -i|--i|-ip|--ip)
       IP_ADDR="$2"
+      shift
+      shift;;
+    -l|--l|-player|--player)
+      PLAYER="$2"
       shift
       shift;;
     -p|--p|-protocol|--protocol)
@@ -53,6 +57,7 @@ case ${IP_PROTO} in
 esac
 
 if [ "${LAUNCHER}" == "play-stream" ]; then
+  WIN_TITLE="${LAUNCHER} - ${PLAYER}"
   case ${PLAYER} in
     ffplay)
       # Play a video stream with low latency
