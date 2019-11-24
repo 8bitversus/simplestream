@@ -25,10 +25,10 @@ if [ "${LAUNCHER}" == "play-stream" ]; then
   TEST_MPV=$(which mpv)
   if [ $? -eq 0 ]; then
     # TODO: Eval if these are also required: `--no-cache --untimed`
-    mpv --profile=low-latency --title="mpv: ${LAUNCHER}" ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}
+    mpv --profile=low-latency --title="${LAUNCHER} - mpv" "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
   else
     ffplay -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
-      -fflags nobuffer+fastseek+flush_packets -flags low_delay -strict experimental -sync ext -framedrop -window_title "ffplay: ${LAUNCHER}" -i ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}
+      -fflags nobuffer+fastseek+flush_packets -flags low_delay -strict experimental -sync ext -framedrop -window_title "${LAUNCHER} - ffplay" -i "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
   fi
 elif [ "${LAUNCHER}" == "record-stream" ]; then
   # Record a video stream in a Matroska container.
