@@ -16,6 +16,7 @@ VID_BITRATE="640k"
 VID_COLORSPACE="yuv420p"
 #  Format colour matrix to BT.709 to prevent colours "washing out"
 #  - https://stackoverflow.com/questions/37255690/ffmpeg-format-settings-matrix-bt709
+#  - https://kdenlive.org/en/project/color-hell-ffmpeg-transcoding-and-preserving-bt-601/
 VID_BT709="-vf scale=out_color_matrix=bt709 -color_primaries bt709 -color_trc bt709 -colorspace bt709"
 # Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
 VID_MOUSE=0
@@ -106,6 +107,8 @@ case ${IP_PROTO} in
     ;;
 esac
 
+#TODO - Isolate the emulator audio only
+# - https://obsproject.com/forum/resources/include-exclude-audio-sources-using-pulseaudio-linux.95/
 # Get the audio loopback device to record from; excludes Microphones.
 # - https://unix.stackexchange.com/questions/488063/record-screen-and-internal-audio-with-ffmpeg
 # - https://askubuntu.com/questions/516899/how-do-i-stream-computer-audio-only-with-ffmpeg
