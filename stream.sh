@@ -7,6 +7,12 @@ LAUNCHER=$(basename $0 .sh)
 STAMP=$(date +"%C%j-%H%M%S")
 LOG_LEVEL="warning"
 
+# Framerate to stream and Group of Pictures (GOP)
+VID_FPS="30"
+VID_GOP=$((VID_FPS * 2))
+VID_BITRATE="512k"
+VID_BUFSIZE=$((VID_BITRATE / VID_FPS))
+
 if [ -e /snap/bin/ffmpeg ]; then
   FFMPEG="/snap/bin/ffmpeg"
 else
@@ -45,10 +51,6 @@ case ${VID_CODEC} in
   "h264_nvenc") VID_PRESET="llhq";;
   "libx264") VID_PRESET="ultrafast";;
 esac
-
-# Framerate to stream and Group of Pictures (GOP)
-VID_FPS="30"
-VID_GOP=$((VID_FPS * 2))
 
 # Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
 VID_MOUSE=0
