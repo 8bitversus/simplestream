@@ -16,6 +16,8 @@ VID_COLORSPACE="yuv420p"
 VID_BT709="-vf scale=out_color_matrix=bt709 -color_primaries bt709 -color_trc bt709 -colorspace bt709"
 # Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
 VID_MOUSE=0
+# Disable vsync in the encoder/streamer; change to 1 to enable vsync
+VID_VSYNC=0
 
 # Audio encoding settings
 AUD_SAMPLERATE=22050
@@ -53,11 +55,11 @@ TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')
 if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]; then
   VID_CODEC="h264_nvenc"
   VID_PRESET="llhp"
-  VID_CODEC_TUNING="-rc cbr_ld_hq -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync 0"
+  VID_CODEC_TUNING="-rc cbr_ld_hq -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC}"
 else
   VID_CODEC="libx264"
   VID_PRESET="ultrafast"
-  VID_CODEC_TUNING="-x264opts no-sliced-threads -tune zerolatency -bsf:v h264_mp4toannexb -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync 0"
+  VID_CODEC_TUNING="-x264opts no-sliced-threads -tune zerolatency -bsf:v h264_mp4toannexb -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC}"
 fi
 
 # Get the audio loopback device to record from; excludes Microphones.
