@@ -55,14 +55,6 @@ function usage {
 # Check for optional parameters
 while [ $# -gt 0 ]; do
   case "${1}" in
-    -bitrate|--bitrate)
-      VID_BITRATE="$2"
-      shift
-      shift;;
-    -codec|--codec)
-      VID_CODEC="$2"
-      shift
-      shift;;
     -ffmpeg|--ffmpeg)
       FFMPEG="$2"
       shift
@@ -84,6 +76,14 @@ while [ $# -gt 0 ]; do
       shift;;
     -protocol|--protocol)
       IP_PROTO="$2"
+      shift
+      shift;;
+    -vbitrate|--vbitrate)
+      VID_BITRATE="$2"
+      shift
+      shift;;
+    -vcodec|--vcodec)
+      VID_CODEC="$2"
       shift
       shift;;
     -vsync|--vsync)
