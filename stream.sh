@@ -83,15 +83,19 @@ if [ "${LAUNCHER}" == "stream" ]; then
   # - https://dennismungai.wordpress.com/2018/02/06/low-latency-live-streaming-for-your-desktop-using-ffmpeg-and-netcat/
   # - https://www.ostechnix.com/20-ffmpeg-commands-beginners/
   ${FFMPEG} -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
-    -f pulse -thread_queue_size 64 -i ${AUD_DEVICE} \
-    -f x11grab -draw_mouse ${VID_MOUSE} -video_size ${VID_SIZE} -framerate ${VID_FPS} -i ${VID_CAPTURE} \
-    -c:a aac -b:a 128k -ac 2 -ar 44100 \
-    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} -g ${VID_GOP} -tune zerolatency -bsf:v h264_mp4toannexb -f ${VID_CONTAINER} ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}
+    -video_size ${VID_SIZE} -framerate ${VID_FPS} \
+    -f x11grab -thread_queue_size 128 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
+    -f pulse -thread_queue_size 128 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_DEVICE} \
+    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} -g ${VID_GOP} ${VID_CODEC_TUNING} \
+    -c:a aac -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental \
+    -f ${VID_CONTAINER} ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}
 elif [ "${LAUNCHER}" == "capture" ]; then
   # Capture the window and loopback audio as H.264/AAC in a Matroska container
   ${FFMPEG} -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
-    -f pulse -i ${AUD_DEVICE} \
-    -f x11grab -draw_mouse ${VID_MOUSE} -video_size ${VID_SIZE} -framerate ${VID_FPS} -i ${VID_CAPTURE} \
-    -c:a aac -b:a 128k -ac 2 -ar 44100 \
-    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} "${LAUNCHER}-${STAMP}.mkv"
+    -video_size ${VID_SIZE} -framerate ${VID_FPS} \
+    -f x11grab -thread_queue_size 128 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
+    -f pulse -thread_queue_size 128 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_DEVICE} \
+    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} -g ${VID_GOP} ${VID_CODEC_TUNING} \
+    -c:a aac -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental \
+    "${LAUNCHER}-${STAMP}.mkv"
 fi
