@@ -35,10 +35,6 @@ while [ $# -gt 0 ]; do
       PLAYER="$2"
       shift
       shift
-      if [ ! -e "${PLAYER}" ]; then
-        echo "ERROR! Could not find ${PLAYER}. Quitting."
-        exit 1
-      fi
       ;;
     -port|--port)
       IP_PORT="$2"
@@ -55,6 +51,11 @@ while [ $# -gt 0 ]; do
       usage;;
   esac
 done
+
+if [ ! -e "${PLAYER}" ]; then
+  echo "ERROR! Could not find ${PLAYER}. Quitting."
+  exit 1
+fi
 
 case ${IP_PROTO} in
   tcp)
