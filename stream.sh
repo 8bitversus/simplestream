@@ -50,27 +50,27 @@ function usage {
 # Check for optional parameters
 while [ $# -gt 0 ]; do
   case "${1}" in
-    -b|--b|-bitrate|--bitrate)
+    -bitrate|--bitrate)
       VID_BITRATE="$2"
       shift
       shift;;
-    -c|--c|-codec|--codec)
+    -codec|--codec)
       VID_CODEC="$2"
       shift
       shift;;
-    -f|--f|-fps|--fps)
+    -fps|--fps)
       VID_FPS="$2"
       shift
       shift;;
-    -i|--i|-ip|--ip)
+    -ip|--ip)
       IP_ADDR="$2"
       shift
       shift;;
-    -p|--p|-protocol|--protocol)
+    -protocol|--protocol)
       IP_PROTO="$2"
       shift
       shift;;
-    -h|--h|-help|--help|-?)
+    -h|--h|-help|--help)
       usage;;
     *)
       echo "ERROR! \"${1}\" is not s supported parameter."

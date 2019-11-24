@@ -26,19 +26,19 @@ function usage {
 # Check for optional parameters
 while [ $# -gt 0 ]; do
   case "${1}" in
-    -i|--i|-ip|--ip)
+    -ip|--ip)
       IP_ADDR="$2"
       shift
       shift;;
-    -l|--l|-player|--player)
+    -player|--player)
       PLAYER="$2"
       shift
       shift;;
-    -p|--p|-protocol|--protocol)
+    -protocol|--protocol)
       IP_PROTO="$2"
       shift
       shift;;
-    -h|--h|-help|--help|-?)
+    -h|--h|-help|--help)
       usage;;
     *)
       echo "ERROR! \"${1}\" is not s supported parameter."
