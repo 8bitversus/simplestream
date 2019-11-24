@@ -29,6 +29,18 @@ VID_VSYNC=0
 AUD_SAMPLERATE=22050
 AUD_BITRATE=96k
 
+# More encoder threads beyond a certain threshold increases latency and will
+# have a higher encoding memory footprint. Quality degradation is more
+# prominent with higher thread counts in constant bitrate modes and
+# near-constant bitrate mode called VBV (video buffer verifier), due to
+# increased encode delay. 
+CPU_CORES=$(cat /proc/cpuinfo | grep "cpu cores" | head -n 1 | cut -d':' -f2 | sed 's/ //g')
+if [ ${CPU_CORES} -ge 4 ]; then
+  THREADS=$((CPU_CORES / 2))
+else
+  THREADS=0
+fi
+
 function usage {
   echo
   echo "Usage"
@@ -159,7 +171,7 @@ if [ "${LAUNCHER}" == "stream" ]; then
   echo "Streaming ${VID_CODEC}: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
   # Stream the window and loopback audio as a low latency MPEG2-TS
   # - https://dennismungai.wordpress.com/2018/02/06/low-latency-live-streaming-for-your-desktop-using-ffmpeg-and-netcat/
-  ${FFMPEG} -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
+  ${FFMPEG} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
     -video_size ${VID_SIZE} -framerate ${VID_FPS} \
     -f x11grab -thread_queue_size 128 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
     -f pulse -thread_queue_size 128 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_DEVICE} \
@@ -169,7 +181,7 @@ if [ "${LAUNCHER}" == "stream" ]; then
 elif [ "${LAUNCHER}" == "capture" ]; then
   echo "Capturing ${VID_CODEC}: ${LAUNCHER}-${STAMP}.mkv"
   # Capture the window and loopback audio as H.264/AAC in a Matroska container
-  ${FFMPEG} -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
+  ${FFMPEG} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
     -video_size ${VID_SIZE} -framerate ${VID_FPS} \
     -f x11grab -thread_queue_size 128 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
     -f pulse -thread_queue_size 128 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_DEVICE} \
