@@ -10,6 +10,8 @@ LOG_LEVEL="warning"
 # Framerate to stream and Group of Pictures (GOP)
 VID_FPS="30"
 VID_GOP=$((VID_FPS * 2))
+# Select the video codec; change to "libx264" for software encoding.
+VID_CODEC="h264_nvenc"
 VID_BITRATE="640k"
 VID_BUFSIZE=$((VID_BITRATE / VID_FPS))
 VID_COLORSPACE="yuv420p"
@@ -52,8 +54,7 @@ TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')
 # TODO: Tune the encoders
 # - https://devblogs.nvidia.com/turing-h264-video-encoding-speed-and-quality/
 # - https://superuser.com/questions/1296374/best-settings-for-ffmpeg-with-nvenc
-if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]; then
-  VID_CODEC="h264_nvenc"
+if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]  &&  [ "${VID_CODEC}" == "h264_nvenc" ]; then
   VID_PRESET="llhp"
   VID_CODEC_TUNING="-rc cbr_ld_hq -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC}"
 else
