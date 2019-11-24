@@ -139,11 +139,27 @@ AUD_DEVICE=$(pacmd list-sources | grep -PB 1 "analog.*monitor>" | head -n 1 | cu
 TMP_XWININFO=$(mktemp -u)
 echo -e "Please select the window you\nwould like to stream/capture by clicking the\nmouse in that window."
 xwininfo | tee ${TMP_XWININFO}
+
+# Crop menus and status areas from known emulators.
+WIN_ID=$(grep "Window id:" ${TMP_XWININFO})
+if [[ ${WIN_ID} == *"VICE"* ]]; then
+  TOP_OFFSET=30
+  BOT_OFFSET=$((TOP_OFFSET + 49))
+elif [[ ${WIN_ID} == *"Fuse"* ]]; then
+  TOP_OFFSET=30
+  BOT_OFFSET=$((TOP_OFFSET + 26))
+else
+  TOP_OFFSET=0
+  BOT_OFFSET=0
+fi
+
 CAPTURE_X=$(sed -n -e "s/^ \+Absolute upper-left X: \+\([0-9]\+\).*/\1/p" ${TMP_XWININFO})
 CAPTURE_Y=$(sed -n -e "s/^ \+Absolute upper-left Y: \+\([0-9]\+\).*/\1/p" ${TMP_XWININFO})
+CAPTURE_Y=$((CAPTURE_Y + TOP_OFFSET))
 CAPTURE_WIDTH=$(sed -n -e "s/^ \+Width: \+\([0-9]\+\).*/\1/p" ${TMP_XWININFO})
 [ $((CAPTURE_WIDTH%2)) -ne 0 ] && ((CAPTURE_WIDTH--))
 CAPTURE_HEIGHT=$(sed -n -e "s/^ \+Height: \+\([0-9]\+\).*/\1/p" ${TMP_XWININFO})
+CAPTURE_HEIGHT=$((CAPTURE_HEIGHT - BOT_OFFSET))
 [ $((CAPTURE_HEIGHT%2)) -ne 0 ] && ((CAPTURE_HEIGHT--))
 rm -f ${TMP_XWININFO}
 VID_CAPTURE="${DISPLAY}+${CAPTURE_X},${CAPTURE_Y}"
