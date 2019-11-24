@@ -38,19 +38,18 @@ esac
 TEST_NVENC=$(nvidia-smi -q | grep Encoder | wc -l)
 TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')
 
+# TODO: Tune the encoders
+# - https://devblogs.nvidia.com/turing-h264-video-encoding-speed-and-quality/
+# - https://superuser.com/questions/1296374/best-settings-for-ffmpeg-with-nvenc
 if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]; then
   VID_CODEC="h264_nvenc"
-  VID_CODEC_TUNING=""
+  VID_PRESET="llhp"
+  VID_CODEC_TUNING="-rc cbr_ld_hq -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync 0"
 else
   VID_CODEC="libx264"
-  VID_CODEC_TUNING=" -tune zerolatency -bsf:v h264_mp4toannexb "
+  VID_PRESET="ultrafast"
+  VID_CODEC_TUNING="-x264opts no-sliced-threads -tune zerolatency -bsf:v h264_mp4toannexb -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync 0"
 fi
-
-# Use the appropriate preset based on the encoider selected.
-case ${VID_CODEC} in
-  "h264_nvenc") VID_PRESET="llhq";;
-  "libx264") VID_PRESET="ultrafast";;
-esac
 
 # Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
 VID_MOUSE=0
@@ -89,7 +88,7 @@ if [ "${LAUNCHER}" == "stream" ]; then
     -video_size ${VID_SIZE} -framerate ${VID_FPS} \
     -f x11grab -thread_queue_size 128 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
     -f pulse -thread_queue_size 128 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_DEVICE} \
-    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} -g ${VID_GOP} ${VID_CODEC_TUNING} \
+    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} ${VID_CODEC_TUNING} \
     -c:a aac -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental \
     -f ${VID_CONTAINER} "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
 elif [ "${LAUNCHER}" == "capture" ]; then
@@ -99,7 +98,7 @@ elif [ "${LAUNCHER}" == "capture" ]; then
     -video_size ${VID_SIZE} -framerate ${VID_FPS} \
     -f x11grab -thread_queue_size 128 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
     -f pulse -thread_queue_size 128 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_DEVICE} \
-    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} -g ${VID_GOP} ${VID_CODEC_TUNING} \
+    -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} ${VID_CODEC_TUNING} \
     -c:a aac -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental \
     "${LAUNCHER}-${STAMP}.mkv"
 fi
