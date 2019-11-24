@@ -156,15 +156,15 @@ TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')
 # - https://devblogs.nvidia.com/turing-h264-video-encoding-speed-and-quality/
 # - https://superuser.com/questions/1296374/best-settings-for-ffmpeg-with-nvenc
 if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]  &&  [ "${VID_CODEC}" == "h264_nvenc" ]; then
-  VID_PRESET="llhp"
-  VID_CODEC_TUNING="-rc cbr_ld_hq -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC}"
+  VID_PRESET="llhq"
+  VID_CODEC_TUNING="-b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC}"
 else
   if [ "${VID_CODEC}" != "libx264" ]; then
     echo "WARNING! nvenc does not appear to be available. Falling back to libx264."
   fi
   VID_CODEC="libx264"
   VID_PRESET="veryfast"
-  VID_CODEC_TUNING="-x264opts no-sliced-threads -tune zerolatency -bsf:v h264_mp4toannexb -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC}"
+  VID_CODEC_TUNING="-x264opts no-sliced-threads:no-scenecut -tune zerolatency -bsf:v h264_mp4toannexb -b:v ${VID_BITRATE} -sc_threshold 0 -g ${VID_GOP} -vsync ${VID_VSYNC}"
 fi
 
 if [ "${LAUNCHER}" == "stream" ]; then
