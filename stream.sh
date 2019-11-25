@@ -26,6 +26,7 @@ VID_MOUSE=0
 VID_VSYNC=0
 
 # Audio encoding settings
+AUD_CODEC="aac"
 AUD_SAMPLERATE=22050
 AUD_BITRATE=96k
 STREAM_OPTIONS=""
@@ -185,16 +186,17 @@ fi
 # Stream/Capture the window and loopback audio as a low latency
 # H.264/AAC in MPEG2-TS (stream) or Matroska (capture) container
 if [ "${LAUNCHER}" == "stream" ]; then
-  echo "Streaming ${VID_CODEC}: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
+  echo "Streaming: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
   OUTPUT="-f ${VID_CONTAINER} ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
 elif [ "${LAUNCHER}" == "capture" ]; then
-  echo "Capturing ${VID_CODEC}: ${LAUNCHER}-${STAMP}.mkv"
+  echo "Capturing: ${LAUNCHER}-${STAMP}.mkv"
   OUTPUT="${LAUNCHER}-${STAMP}.mkv"
 fi
+echo " - ${VID_SIZE}@${VID_FPS}fps using ${VID_CODEC}/${VID_PRESET} (${VID_BITRATE}) and ${AUD_CODEC} (${AUD_BITRATE}) [${VID_PROFILE}@L${VID_LEVEL}]"
 ${FFMPEG} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
 -video_size ${VID_SIZE} -framerate ${VID_FPS} \
 -f x11grab -thread_queue_size 128 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
 -f pulse -thread_queue_size 128 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_DEVICE} \
 -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_TUNING} ${VID_BT709} \
--c:a aac -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental \
+-c:a ${AUD_CODEC} -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental \
 ${OUTPUT}
