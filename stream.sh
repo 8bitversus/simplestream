@@ -222,7 +222,7 @@ while IFS="" read -r SINK_INPUT || [ -n "$SINK_INPUT" ]; do
   SINK_APP=$(echo "${SINK_INPUT}" | cut -d':' -f1)
   SINK_INDEX=$(echo "${SINK_INPUT}" | cut -d':' -f2)
   # Only move the sink if it is a known application
-  if [[ ${SINK_APP} == *"VICE"* ]] || [[ ${SINK_APP} == *"fuse-gtk"* ]]; then
+  if [[ ${SINK_APP} == *"VICE"* ]] || [[ ${SINK_APP} == *"fuse-gtk"* ]] || [[ ${SINK_APP} == *"Caprice32"* ]]; then
     echo "Moving audio for ${SINK_APP} (index:${SINK_INDEX}) to ${AUD_COMBINE}"
     pactl move-sink-input ${SINK_INDEX} ${AUD_COMBINE}
     AUD_MOVED_SINKS=1
