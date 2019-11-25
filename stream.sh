@@ -133,7 +133,7 @@ if [ "${IP_PROTO}" != "tcp" ] && [ "${IP_PROTO}" != "udp" ]; then
   exit 1
 fi
 
-if [ "${VID_CODEC}" != "libx264" ] && [ "${VID_CODEC}" != "h264_nvenc" ] && [ "${VID_CODEC}" != "264_vaapi" ]; then
+if [ "${VID_CODEC}" != "libx264" ] && [ "${VID_CODEC}" != "h264_nvenc" ] && [ "${VID_CODEC}" != "h264_vaapi" ]; then
   echo "ERROR! Unknown video codec: ${VID_CODEC}. Quitting."
   exit 1
 fi
