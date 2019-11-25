@@ -204,7 +204,6 @@ trap "audio_cleanup" SIGINT SIGTERM
 # - https://askubuntu.com/questions/516899/how-do-i-stream-computer-audio-only-with-ffmpeg
 
 # Get default audio device
-#AUD_DEFAULT_DEVICE=$(pacmd list-sinks | grep -A1 "* index" | grep -oP "<\K[^ >]+")
 AUD_DEFAULT_DEVICE=$(pactl list short sinks | grep RUNNING | grep -v 8-bit-vs-combine | head -n 1 | cut -f2 | sed 's/ //g')
 
 # Create a combine-sink, with just the default audio device as a slave
@@ -212,24 +211,29 @@ AUD_DEFAULT_DEVICE=$(pactl list short sinks | grep RUNNING | grep -v 8-bit-vs-co
 AUD_COMBINE_MODULE=$(pactl load-module module-combine-sink sink_name=${AUD_COMBINE} slaves=${AUD_DEFAULT_DEVICE} sink_properties=device.description=${AUD_COMBINE_DESC})
 
 # Get a list of sink-inputs; apps capable of playing audio
-TMP_SINK_INPUTS=$(mktemp -u)
-pactl list short sink-inputs > "${TMP_SINK_INPUTS}"
+TMP_SHORT_INPUTS=$(mktemp -u)
+TMP_LONG_INPUTS=$(mktemp -u)
+pactl list short sink-inputs > "${TMP_SHORT_INPUTS}"
+pacmd list-sink-inputs > "${TMP_LONG_INPUTS}"
 
 # Move sinks for known apps to our combine-sink
 AUD_MOVED_SINKS=0
 while IFS="" read -r SINK_INPUT || [ -n "${SINK_INPUT}" ]; do
   # Resolve sink-index to client to app name
   SINK_INDEX=$(echo "${SINK_INPUT}" | cut -f1 | sed -e 's/ //g')
-  SINK_CLIENT=$(echo "${SINK_INPUT}" | cut -f3 | sed -e 's/ //g')
-  SINK_APP=$(pacmd list-sink-inputs | grep client | grep -v socket | grep "${SINK_CLIENT}" | cut -d'<' -f2 | cut -d '>' -f1 | sed -e 's/%//g')
-  # Only move the sink if it is a known application
-  if [[ ${SINK_APP} == "VICE" ]] || [[ ${SINK_APP} == "ALSA plug-in [fuse-gtk]" ]] || [[ ${SINK_APP} == "Fuse"* ]] || [[ ${SINK_APP} == "Caprice32"* ]]; then
-    echo "Moving audio for ${SINK_APP} (index:${SINK_INDEX}) to ${AUD_COMBINE}"
-    pactl move-sink-input ${SINK_INDEX} ${AUD_COMBINE}
-    AUD_MOVED_SINKS=1
+  SINK_CLIENT=$(echo "${SINK_INPUT}" | cut -f3 | sed -e 's/ //g' -e 's/-//g')
+  if [ -n "${SINK_CLIENT}" ]; then
+    SINK_APP=$(grep client "${TMP_LONG_INPUTS}" | grep -v native-protocol.peer | grep ${SINK_CLIENT} | cut -d'<' -f2 | cut -d '>' -f1)
+    # Only move the sink if it is a known application
+    if [[ ${SINK_APP} == "VICE" ]] || [[ ${SINK_APP} == *"fuse-gtk"* ]] || [[ ${SINK_APP} == "Fuse"* ]] || [[ ${SINK_APP} == "Caprice32"* ]]; then
+      echo "Moving audio for ${SINK_APP} [index:${SINK_INDEX}][client:${SINK_CLIENT}] to ${AUD_COMBINE}"
+      pactl move-sink-input ${SINK_INDEX} ${AUD_COMBINE}
+      AUD_MOVED_SINKS=1
+    fi
   fi
-done < "${TMP_SINK_INPUTS}"
-rm -f "${TMP_SINK_INPUTS}"
+done < "${TMP_SHORT_INPUTS}"
+rm -f "${TMP_SHORT_INPUTS}"
+rm -f "${TMP_LONG_INPUTS}"
 
 # If we moved some sinks the make our combine-sink monitor the recording source
 if [ ${AUD_MOVED_SINKS} -eq 1 ]; then
