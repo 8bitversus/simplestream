@@ -284,8 +284,8 @@ fi
 echo " - ${VID_SIZE}@${VID_FPS}fps using ${VID_CODEC}/${VID_PRESET} (${VID_BITRATE}) and ${AUD_CODEC} (${AUD_BITRATE}) [${VID_PROFILE}@L${VID_LEVEL}]"
 ${FFMPEG} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
 -video_size ${VID_SIZE} -framerate ${VID_FPS} \
--f x11grab -thread_queue_size 128 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
--f pulse -thread_queue_size 128 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_RECORD_DEVICE} \
+-f x11grab -thread_queue_size 256 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
+-f pulse -thread_queue_size 256 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_RECORD_DEVICE} \
 -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} ${VID_PRESET_FULL} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_TUNING} \
 -c:a ${AUD_CODEC} -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental \
 ${OUTPUT}
