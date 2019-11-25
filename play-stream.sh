@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 
 PLAYER="ffplay"
-IP_PROTO="tcp"
-IP_PORT="4864"
-IP_ADDR="127.0.0.1"
 LAUNCHER=$(basename $0 .sh)
 STAMP=$(date +"%C%j-%H%M%S")
 LOG_LEVEL="warning"
+
+# Network settings
+IP_PROTO="tcp"
+IP_PORT="4864"
+IP_ADDR="127.0.0.1"
 
 function usage {
   echo

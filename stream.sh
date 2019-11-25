@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
 
-FFMPEG="/snap/bin/ffmpeg"
-IP_PROTO="tcp"
-IP_PORT="4864"
-IP_ADDR="127.0.0.1"
+if [ -x /snap/bin/ffmpeg ]; then
+  FFMPEG="/snap/bin/ffmpeg"
+elif [ -x /usr/bin/ffmpeg ]; then
+  FFMPEG="/usr/bin/ffmpeg"
+else
+  FFMPEG=""
+fi
 LAUNCHER=$(basename $0 .sh)
 STAMP=$(date +"%C%j-%H%M%S")
 LOG_LEVEL="warning"
+
+# Network settings
+IP_PROTO="tcp"
+IP_PORT="4864"
+IP_ADDR="127.0.0.1"
 
 # Select the video codec; change to "libx264" for software encoding. Derive other encoding configuration.
 VID_CODEC="h264_nvenc"
