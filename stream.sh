@@ -138,6 +138,11 @@ WIN_ID=$(grep "Window id:" ${TMP_XWININFO})
 if [[ ${WIN_ID} == *"VICE"* ]]; then
   TOP_OFFSET=30
   BOT_OFFSET=$((TOP_OFFSET + 49))
+# Fuse SDL doesn't require cropping
+elif [[ ${WIN_ID} == *"Fuse -"* ]]; then
+  TOP_OFFSET=0
+  BOT_OFFSET=0
+# Fuse GTK does require cropping
 elif [[ ${WIN_ID} == *"Fuse"* ]]; then
   TOP_OFFSET=30
   BOT_OFFSET=$((TOP_OFFSET + 26))
