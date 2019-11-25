@@ -127,53 +127,6 @@ case ${IP_PROTO} in
   tcp|udp) VID_CONTAINER="mpegts";;
 esac
 
-function audio_cleanup() {
-  pactl unload-module ${AUD_COMBINE_MODULE} 2>/dev/null
-}
-
-# Call audio_cleanup() function on Ctrl+C 
-trap "audio_cleanup" SIGINT SIGTERM
-
-# Get the audio loopback device to record from; excludes Microphones.
-# - https://obsproject.com/forum/resources/include-exclude-audio-sources-using-pulseaudio-linux.95/
-# - https://unix.stackexchange.com/questions/488063/record-screen-and-internal-audio-with-ffmpeg
-# - https://askubuntu.com/questions/516899/how-do-i-stream-computer-audio-only-with-ffmpeg
-
-# Get default audio monitor
-AUD_DEFAULT_MONITOR_DEVICE=$(pactl list short sources | grep RUNNING | grep monitor | grep -v 8-bit-vs-combine | head -n 1 | cut -f1 | sed 's/ //g')
-AUD_DEFAULT_MONITOR_NAME=$(pactl list short sources | grep RUNNING | grep monitor | grep -v 8-bit-vs-combine | head -n 1 | cut -f2 | sed -e 's/ //g')
-
-# Create a combine-sink, with just the default monitor as a slave
-# - https://askubuntu.com/questions/60837/record-a-programs-output-with-pulseaudio/910879#910879
-export AUD_COMBINE_MODULE=$(pactl load-module module-combine-sink sink_name=8-bit-vs-combine slaves=${AUD_DEFAULT_MONITOR_DEVICE} sink_properties=device.description=8-bit-Vs-Combine)
-
-# Look up sink-input index by property
-# - https://stackoverflow.com/questions/39736580/look-up-pulseaudio-sink-input-index-by-property
-TMP_SINKINPUTS=$(mktemp -u)
-pacmd list-sink-inputs | grep -v "sink input(s) available." | tr '\n' '\r' | perl -pe 's/ *index: ([0-9]+).+?application\.name = "([^\r]+)"\r.+?(?=index:|$)/\2:\1\r/g' | tr '\r' '\n' > ${TMP_SINKINPUTS}
-
-# Move sinks for knowns apps to our combine-sink
-AUD_MOVED_SINKS=0
-while IFS="" read -r SINK_INPUT || [ -n "$SINK_INPUT" ]; do
-  SINK_APP=$(echo "${SINK_INPUT}" | cut -d':' -f1)
-  SINK_INDEX=$(echo "${SINK_INPUT}" | cut -d':' -f2)
-  # Only move the sink if it is a known application
-  if [[ ${SINK_APP} == *"VICE"* ]] || [[ ${SINK_APP} == *"fuse-gtk"* ]]; then
-    echo "Moving ${SINK_APP}: ${SINK_INDEX} to 8-bit-vs-combine"
-    pactl move-sink-input ${SINK_INDEX} 8-bit-vs-combine
-    AUD_MOVED_SINKS=1
-  fi
-done < $TMP_SINKINPUTS
-rm -f $TMP_SINKINPUTS
-
-# If we moved some sinks the make our combine-sink monitor the recording source
-if [ ${AUD_MOVED_SINKS} -eq 1 ]; then
-  AUD_COMBINE_MONITOR_DEVICE=$(pactl list short sources | grep 8-bit-vs-combine.monitor | head -n 1 | cut -f1 | sed 's/ //g')
-  AUD_DEVICE=${AUD_COMBINE_MONITOR_DEVICE}
-else
-  AUD_DEVICE=${AUD_DEFAULT_MONITOR_DEVICE}
-fi
-
 # Get the window we want to stream
 # - https://unix.stackexchange.com/questions/14159/how-do-i-find-the-window-dimensions-and-position-accurately-including-decoration
 TMP_XWININFO=$(mktemp -u)
@@ -221,6 +174,53 @@ else
   VID_CODEC="libx264"
   VID_PRESET="veryfast"
   VID_CODEC_TUNING="-x264opts no-sliced-threads:no-scenecut -tune zerolatency -bsf:v h264_mp4toannexb -b:v ${VID_BITRATE} -sc_threshold 0 -g ${VID_GOP} -vsync ${VID_VSYNC}"
+fi
+
+function audio_cleanup() {
+  pactl unload-module ${AUD_COMBINE_MODULE} 2>/dev/null
+}
+
+# Call audio_cleanup() function on Ctrl+C 
+trap "audio_cleanup" SIGINT SIGTERM
+
+# Get the audio loopback device to record from; excludes Microphones.
+# - https://obsproject.com/forum/resources/include-exclude-audio-sources-using-pulseaudio-linux.95/
+# - https://unix.stackexchange.com/questions/488063/record-screen-and-internal-audio-with-ffmpeg
+# - https://askubuntu.com/questions/516899/how-do-i-stream-computer-audio-only-with-ffmpeg
+
+# Get default audio monitor
+AUD_DEFAULT_MONITOR_DEVICE=$(pactl list short sources | grep RUNNING | grep monitor | grep -v 8-bit-vs-combine | head -n 1 | cut -f1 | sed 's/ //g')
+AUD_DEFAULT_MONITOR_NAME=$(pactl list short sources | grep RUNNING | grep monitor | grep -v 8-bit-vs-combine | head -n 1 | cut -f2 | sed -e 's/ //g')
+
+# Create a combine-sink, with just the default monitor as a slave
+# - https://askubuntu.com/questions/60837/record-a-programs-output-with-pulseaudio/910879#910879
+export AUD_COMBINE_MODULE=$(pactl load-module module-combine-sink sink_name=8-bit-vs-combine slaves=${AUD_DEFAULT_MONITOR_DEVICE} sink_properties=device.description=8-bit-Vs-Combine)
+
+# Look up sink-input index by property
+# - https://stackoverflow.com/questions/39736580/look-up-pulseaudio-sink-input-index-by-property
+TMP_SINKINPUTS=$(mktemp -u)
+pacmd list-sink-inputs | grep -v "sink input(s) available." | tr '\n' '\r' | perl -pe 's/ *index: ([0-9]+).+?application\.name = "([^\r]+)"\r.+?(?=index:|$)/\2:\1\r/g' | tr '\r' '\n' > ${TMP_SINKINPUTS}
+
+# Move sinks for knowns apps to our combine-sink
+AUD_MOVED_SINKS=0
+while IFS="" read -r SINK_INPUT || [ -n "$SINK_INPUT" ]; do
+  SINK_APP=$(echo "${SINK_INPUT}" | cut -d':' -f1)
+  SINK_INDEX=$(echo "${SINK_INPUT}" | cut -d':' -f2)
+  # Only move the sink if it is a known application
+  if [[ ${SINK_APP} == *"VICE"* ]] || [[ ${SINK_APP} == *"fuse-gtk"* ]]; then
+    echo "Moving audio for ${SINK_APP} (index:${SINK_INDEX}) to 8-bit-vs-combine"
+    pactl move-sink-input ${SINK_INDEX} 8-bit-vs-combine
+    AUD_MOVED_SINKS=1
+  fi
+done < $TMP_SINKINPUTS
+rm -f $TMP_SINKINPUTS
+
+# If we moved some sinks the make our combine-sink monitor the recording source
+if [ ${AUD_MOVED_SINKS} -eq 1 ]; then
+  AUD_COMBINE_MONITOR_DEVICE=$(pactl list short sources | grep 8-bit-vs-combine.monitor | head -n 1 | cut -f1 | sed 's/ //g')
+  AUD_DEVICE=${AUD_COMBINE_MONITOR_DEVICE}
+else
+  AUD_DEVICE=${AUD_DEFAULT_MONITOR_DEVICE}
 fi
 
 # Stream/Capture the window and loopback audio as a low latency
