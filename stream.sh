@@ -203,20 +203,20 @@ trap "audio_cleanup" SIGINT SIGTERM
 # - https://unix.stackexchange.com/questions/488063/record-screen-and-internal-audio-with-ffmpeg
 # - https://askubuntu.com/questions/516899/how-do-i-stream-computer-audio-only-with-ffmpeg
 
-# Get default audio monitor
-AUD_DEFAULT_MONITOR_DEVICE=$(pactl list short sources | grep RUNNING | grep monitor | grep -v 8-bit-vs-combine | head -n 1 | cut -f1 | sed 's/ //g')
-AUD_DEFAULT_MONITOR_NAME=$(pactl list short sources | grep RUNNING | grep monitor | grep -v 8-bit-vs-combine | head -n 1 | cut -f2 | sed -e 's/ //g')
+# Get default audio device
+#AUD_DEFAULT_DEVICE=$(pacmd list-sinks | grep -A1 "* index" | grep -oP "<\K[^ >]+")
+AUD_DEFAULT_DEVICE=$(pactl list short sinks | grep RUNNING | grep -v 8-bit-vs-combine | head -n 1 | cut -f2 | sed 's/ //g')
 
-# Create a combine-sink, with just the default monitor as a slave
+# Create a combine-sink, with just the default audio device as a slave
 # - https://askubuntu.com/questions/60837/record-a-programs-output-with-pulseaudio/910879#910879
-AUD_COMBINE_MODULE=$(pactl load-module module-combine-sink sink_name=${AUD_COMBINE} slaves=${AUD_DEFAULT_MONITOR_DEVICE} sink_properties=device.description=${AUD_COMBINE_DESC})
+AUD_COMBINE_MODULE=$(pactl load-module module-combine-sink sink_name=${AUD_COMBINE} slaves=${AUD_DEFAULT_DEVICE} sink_properties=device.description=${AUD_COMBINE_DESC})
 
 # Look up sink-input index by property
 # - https://stackoverflow.com/questions/39736580/look-up-pulseaudio-sink-input-index-by-property
 TMP_SINKINPUTS=$(mktemp -u)
 pacmd list-sink-inputs | grep -v "sink input(s) available." | tr '\n' '\r' | perl -pe 's/ *index: ([0-9]+).+?application\.name = "([^\r]+)"\r.+?(?=index:|$)/\2:\1\r/g' | tr '\r' '\n' > ${TMP_SINKINPUTS}
 
-# Move sinks for knowns apps to our combine-sink
+# Move sinks for known apps to our combine-sink
 AUD_MOVED_SINKS=0
 while IFS="" read -r SINK_INPUT || [ -n "$SINK_INPUT" ]; do
   SINK_APP=$(echo "${SINK_INPUT}" | cut -d':' -f1)
@@ -232,10 +232,10 @@ rm -f $TMP_SINKINPUTS
 
 # If we moved some sinks the make our combine-sink monitor the recording source
 if [ ${AUD_MOVED_SINKS} -eq 1 ]; then
-  AUD_COMBINE_MONITOR_DEVICE=$(pactl list short sources | grep ${AUD_COMBINE}.monitor | head -n 1 | cut -f1 | sed 's/ //g')
-  AUD_RECORD_DEVICE=${AUD_COMBINE_MONITOR_DEVICE}
+  AUD_COMBINE_DEVICE=$(pactl list short sources | grep ${AUD_COMBINE}.monitor | head -n 1 | cut -f1 | sed 's/ //g')
+  AUD_RECORD_DEVICE=${AUD_COMBINE_DEVICE}
 else
-  AUD_RECORD_DEVICE=${AUD_DEFAULT_MONITOR_DEVICE}
+  AUD_RECORD_DEVICE=${AUD_DEFAULT_DEVICE}
 fi
 
 # Stream/Capture the window and loopback audio as a low latency
