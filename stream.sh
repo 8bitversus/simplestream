@@ -36,6 +36,7 @@ AUD_BITRATE=96k
 AUD_COMBINE="8-bit-vs-combine"
 AUD_COMBINE_DESC="8-bit-Vs-Combine"
 STREAM_OPTIONS=""
+VAAPI_DEVICE="/dev/dri/renderD128"
 
 # More encoder threads beyond a certain threshold increases latency and will
 # have a higher encoding memory footprint. Quality degradation is more
@@ -52,10 +53,10 @@ fi
 function usage {
   echo
   echo "Usage"
-  echo "  ${LAUNCHER} [--ffmpeg /snap/bin/ffmpeg ] [--fps 60 ] [--ip 192.168.0.1]"
+  echo "  ${LAUNCHER} [--ffmpeg /snap/bin/ffmpeg] [--fps 60] [--ip 192.168.0.1]"
   echo "              [--mouse] [--port 4864] [--protocol tcp|udp]"
-  echo "              [--stream-options '?fifo_size=10240' [--vbitrate 640k]"
-  echo "              [--vcodec libx264] [--vsync] [--help]"
+  echo "              [--stream-options '?fifo_size=10240'] [--vaapi-device /dev/dri/renderD128]"
+  echo "              [--vbitrate 640k] [--vcodec libx264] [--vsync] [--help]"
   echo
   echo "You can also pass optional parameters"
   echo "  --ffmpeg        : Set the full path to ffmpeg."
@@ -65,6 +66,7 @@ function usage {
   echo "  --port          : Set the tcp/udp port to stream to."
   echo "  --protocol      : Set the protocol to stream over. [tcp|udp]"
   echo "  --steam-options : Set tcp/udp stream options; such as '?fifo_size=10240'."
+  echo "  --vaapi-device  : Set the full path to the VA-API device; such as /dev/dri/renderD128"
   echo "  --vbitrate      : Set video codec bitrate for the stream."
   echo "  --vcodec        : Set video codec for the stream. [libx264|h264_nvenc|h264_vaapi]"
   echo "  --vsync         : Enable vsync in the video encoder; disabled by default."
@@ -102,6 +104,10 @@ while [ $# -gt 0 ]; do
       shift;;
     -stream-options|--stream-options)
       STREAM_OPTIONS="$2"
+      shift
+      shift;;
+    -vaapi-device|--vaapi-device)
+      VAAPI_DEVICE="$2"
       shift
       shift;;
     -vbitrate|--vbitrate)
@@ -197,7 +203,11 @@ if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]  &&  [ "${VID_CODEC}
 elif [ ${TEST_VAAPI} -eq 0 ] && [ "${VID_CODEC}" == "h264_vaapi" ]; then
   VID_COLORSPACE="vaapi_vld"
   VID_PRESET_FULL=""
-  VID_CODEC_TUNING="-vaapi_device /dev/dri/renderD128 -filter:v format=nv12,hwupload -vsync ${VID_VSYNC} -b:v ${VID_BITRATE} -g ${VID_GOP}"
+  VID_CODEC_TUNING="-vaapi_device ${VAAPI_DEVICE} -filter:v format=nv12,hwupload -vsync ${VID_VSYNC} -b:v ${VID_BITRATE} -g ${VID_GOP}"
+  if [ ! -e "${VAAPI_DEVICE}" ]; then
+    echo "ERROR! Could not find VA-API device: ${VAAPI_DEVICE}. Quitting."
+    exit 1
+  fi
 else
   if [ "${VID_CODEC}" != "libx264" ]; then
     echo "WARNING! nvenc does not appear to be available. Falling back to libx264."
