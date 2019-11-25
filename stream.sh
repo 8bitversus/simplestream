@@ -28,6 +28,7 @@ VID_VSYNC=0
 # Audio encoding settings
 AUD_SAMPLERATE=22050
 AUD_BITRATE=96k
+STREAM_OPTIONS=""
 
 # More encoder threads beyond a certain threshold increases latency and will
 # have a higher encoding memory footprint. Quality degradation is more
@@ -46,19 +47,21 @@ function usage {
   echo "Usage"
   echo "  ${LAUNCHER} [--ffmpeg /snap/bin/ffmpeg ] [--fps 60 ] [--ip 192.168.0.1]"
   echo "              [--mouse] [--port 4864] [--protocol tcp|udp]"
-  echo "              [--vbitrate 640k] [--vcodec libx264] [--vsync] [--help]"
+  echo "              [--stream-options '?fifo_size=10240' [--vbitrate 640k]"
+  echo "              [--vcodec libx264] [--vsync] [--help]"
   echo
   echo "You can also pass optional parameters"
-  echo "  --ffmpeg   : Set the full path to ffmpeg."
-  echo "  --fps      : Set framerate to stream at."
-  echo "  --ip       : Set the IP address to stream to."
-  echo "  --mouse    : Enable capture of mouse cursor; disabled by default."
-  echo "  --port     : Set the tcp/udp port to stream to."
-  echo "  --protocol : Set the protocol to stream over. [tcp|udp]"
-  echo "  --vbitrate : Set video codec bitrate for the stream."
-  echo "  --vcodec   : Set video codec for the stream. [libx264|h264_nvenc]"
-  echo "  --vsync    : Enable vsync in the video encoder; disabled by default."
-  echo "  --help     : This help."
+  echo "  --ffmpeg        : Set the full path to ffmpeg."
+  echo "  --fps           : Set framerate to stream at."
+  echo "  --ip            : Set the IP address to stream to."
+  echo "  --mouse         : Enable capture of mouse cursor; disabled by default."
+  echo "  --port          : Set the tcp/udp port to stream to."
+  echo "  --protocol      : Set the protocol to stream over. [tcp|udp]"
+  echo "  --steam-options : Set tcp/udp stream options; such as '?fifo_size=10240'."
+  echo "  --vbitrate      : Set video codec bitrate for the stream."
+  echo "  --vcodec        : Set video codec for the stream. [libx264|h264_nvenc]"
+  echo "  --vsync         : Enable vsync in the video encoder; disabled by default."
+  echo "  --help          : This help."
   echo
   exit 1
 }
@@ -90,6 +93,10 @@ while [ $# -gt 0 ]; do
       IP_PROTO="$2"
       shift
       shift;;
+    -stream-options|--stream-options)
+      STREAM_OPTIONS="$2"
+      shift
+      shift;;
     -vbitrate|--vbitrate)
       VID_BITRATE="$2"
       shift
@@ -116,15 +123,7 @@ fi
 
 # Use the appropriate container based on the protocol selected.
 case ${IP_PROTO} in
-  tcp)
-    VID_CONTAINER="mpegts"
-    STREAM_OPTIONS=""
-    ;;
-  udp)
-    VID_CONTAINER="mpegts"
-    # Add "?fifo_size=10240" if you are experiencing packet loss or video corruption. This will add latency.
-    STREAM_OPTIONS=""
-    ;;
+  tcp|udp) VID_CONTAINER="mpegts";;
 esac
 
 #TODO - Isolate the emulator audio only
