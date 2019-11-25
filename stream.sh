@@ -24,10 +24,6 @@ VID_BITRATE="640k"
 VID_COLORSPACE="yuv420p"
 VID_PROFILE="high"
 VID_LEVEL="4.2"
-#  Format colour matrix to BT.709 to prevent colours "washing out"
-#  - https://stackoverflow.com/questions/37255690/ffmpeg-format-settings-matrix-bt709
-#  - https://kdenlive.org/en/project/color-hell-ffmpeg-transcoding-and-preserving-bt-601/
-VID_BT709="-vf scale=out_color_matrix=bt709 -color_primaries bt709 -color_trc bt709 -colorspace bt709"
 # Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
 VID_MOUSE=0
 # Disable vsync in the encoder/streamer; change to 1 to enable vsync
@@ -70,7 +66,7 @@ function usage {
   echo "  --protocol      : Set the protocol to stream over. [tcp|udp]"
   echo "  --steam-options : Set tcp/udp stream options; such as '?fifo_size=10240'."
   echo "  --vbitrate      : Set video codec bitrate for the stream."
-  echo "  --vcodec        : Set video codec for the stream. [libx264|h264_nvenc]"
+  echo "  --vcodec        : Set video codec for the stream. [libx264|h264_nvenc|h264_vaapi]"
   echo "  --vsync         : Enable vsync in the video encoder; disabled by default."
   echo "  --help          : This help."
   echo
@@ -132,6 +128,11 @@ if [ ! -e "${FFMPEG}" ]; then
   exit 1
 fi
 
+if [ "${VID_CODEC}" != "libx264" ] && [ "${VID_CODEC}" != "h264_nvenc" ] && [ "${VID_CODEC}" != "264_vaapi" ]; then
+  echo "ERROR! Unknown video codec: ${VID_CODEC}. Quitting."
+  exit 1
+fi
+
 # Use the appropriate container based on the protocol selected.
 case ${IP_PROTO} in
   tcp|udp) VID_CONTAINER="mpegts";;
@@ -173,22 +174,33 @@ rm -f ${TMP_XWININFO}
 VID_CAPTURE="${DISPLAY}+${CAPTURE_X},${CAPTURE_Y}"
 VID_SIZE="${CAPTURE_WIDTH}x${CAPTURE_HEIGHT}"
 
+# Do we have nvenc capable hardware?
 TEST_NVENC=$(nvidia-smi -q | grep Encoder | wc -l)
 TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')
 
-# TODO: Tune the encoders
-# - https://devblogs.nvidia.com/turing-h264-video-encoding-speed-and-quality/
-# - https://superuser.com/questions/1296374/best-settings-for-ffmpeg-with-nvenc
+# Do we have VA-API capable hardware?
+TEST_VAINFO=$(vainfo 2>/dev/null)
+TEST_VAAPI=$?
+
+# Format colour matrix to BT.709 to prevent colours "washing out"
+#  - https://stackoverflow.com/questions/37255690/ffmpeg-format-settings-matrix-bt709
+#  - https://kdenlive.org/en/project/color-hell-ffmpeg-transcoding-and-preserving-bt-601/
 if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]  &&  [ "${VID_CODEC}" == "h264_nvenc" ]; then
   VID_PRESET="llhq"
-  VID_CODEC_TUNING="-b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC}"
+  VID_PRESET_FULL="-preset ${VID_PRESET}"
+  VID_CODEC_TUNING="-filter:v scale=out_color_matrix=bt709 -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -color_primaries bt709 -color_trc bt709 -colorspace bt709"
+elif [ ${TEST_VAAPI} -eq 0 ] && [ "${VID_CODEC}" == "h264_vaapi" ]; then
+  VID_COLORSPACE="vaapi_vld"
+  VID_PRESET_FULL=""
+  VID_CODEC_TUNING="-vaapi_device /dev/dri/renderD128 -filter:v format=nv12,hwupload -vsync ${VID_VSYNC} -b:v ${VID_BITRATE} -g ${VID_GOP}"
 else
   if [ "${VID_CODEC}" != "libx264" ]; then
     echo "WARNING! nvenc does not appear to be available. Falling back to libx264."
   fi
   VID_CODEC="libx264"
   VID_PRESET="veryfast"
-  VID_CODEC_TUNING="-x264opts no-sliced-threads:no-scenecut -tune zerolatency -bsf:v h264_mp4toannexb -b:v ${VID_BITRATE} -sc_threshold 0 -g ${VID_GOP} -vsync ${VID_VSYNC}"
+  VID_PRESET_FULL="-preset ${VID_PRESET}"
+  VID_CODEC_TUNING="-x264opts no-sliced-threads:no-scenecut -tune zerolatency -bsf:v h264_mp4toannexb -sc_threshold 0 -filter:v scale=out_color_matrix=bt709 -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -color_primaries bt709 -color_trc bt709 -colorspace bt709"
 fi
 
 function audio_cleanup() {
@@ -259,7 +271,7 @@ ${FFMPEG} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
 -video_size ${VID_SIZE} -framerate ${VID_FPS} \
 -f x11grab -thread_queue_size 128 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
 -f pulse -thread_queue_size 128 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_RECORD_DEVICE} \
--c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_TUNING} ${VID_BT709} \
+-c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} ${VID_PRESET_FULL} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_TUNING} \
 -c:a ${AUD_CODEC} -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental \
 ${OUTPUT}
 audio_cleanup
