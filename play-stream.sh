@@ -59,6 +59,11 @@ if [ $? -eq 1 ]; then
   exit 1
 fi
 
+if [ "${IP_PROTO}" != "tcp" ] && [ "${IP_PROTO}" != "udp" ]; then
+  echo "ERROR! Unknown IP protocol: ${IP_PROTO}. Quitting."
+  exit 1
+fi
+
 case ${IP_PROTO} in
   tcp) STREAM_OPTIONS="?listen";;
   udp) STREAM_OPTIONS="";;
