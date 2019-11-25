@@ -9,7 +9,7 @@ fi
 snap install ffmpeg
 
 # MPV
-apt install -y mpv
+apt install -y mpv vainfo
 
 # FUSE & VICE
 apt install -y fuse-emulator-gtk fuse-emulator-sdl spectrum-roms vice
