@@ -211,24 +211,25 @@ AUD_DEFAULT_DEVICE=$(pactl list short sinks | grep RUNNING | grep -v 8-bit-vs-co
 # - https://askubuntu.com/questions/60837/record-a-programs-output-with-pulseaudio/910879#910879
 AUD_COMBINE_MODULE=$(pactl load-module module-combine-sink sink_name=${AUD_COMBINE} slaves=${AUD_DEFAULT_DEVICE} sink_properties=device.description=${AUD_COMBINE_DESC})
 
-# Look up sink-input index by property
-# - https://stackoverflow.com/questions/39736580/look-up-pulseaudio-sink-input-index-by-property
-TMP_SINKINPUTS=$(mktemp -u)
-pacmd list-sink-inputs | grep -v "sink input(s) available." | tr '\n' '\r' | perl -pe 's/ *index: ([0-9]+).+?application\.name = "([^\r]+)"\r.+?(?=index:|$)/\2:\1\r/g' | tr '\r' '\n' > ${TMP_SINKINPUTS}
+# Get a list of sink-inputs; apps capable of playing audio
+TMP_SINK_INPUTS=$(mktemp -u)
+pactl list short sink-inputs > "${TMP_SINK_INPUTS}"
 
 # Move sinks for known apps to our combine-sink
 AUD_MOVED_SINKS=0
-while IFS="" read -r SINK_INPUT || [ -n "$SINK_INPUT" ]; do
-  SINK_APP=$(echo "${SINK_INPUT}" | cut -d':' -f1)
-  SINK_INDEX=$(echo "${SINK_INPUT}" | cut -d':' -f2)
+while IFS="" read -r SINK_INPUT || [ -n "${SINK_INPUT}" ]; do
+  # Resolve sink-index to client to app name
+  SINK_INDEX=$(echo "${SINK_INPUT}" | cut -f1 | sed -e 's/ //g')
+  SINK_CLIENT=$(echo "${SINK_INPUT}" | cut -f3 | sed -e 's/ //g')
+  SINK_APP=$(pacmd list-sink-inputs | grep client | grep -v socket | grep "${SINK_CLIENT}" | cut -d'<' -f2 | cut -d '>' -f1 | sed -e 's/%//g')
   # Only move the sink if it is a known application
-  if [[ ${SINK_APP} == *"VICE"* ]] || [[ ${SINK_APP} == *"fuse-gtk"* ]] || [[ ${SINK_APP} == *"Caprice32"* ]]; then
+  if [[ ${SINK_APP} == "VICE" ]] || [[ ${SINK_APP} == "ALSA plug-in [fuse-gtk]" ]] || [[ ${SINK_APP} == "Fuse"* ]] || [[ ${SINK_APP} == "Caprice32"* ]]; then
     echo "Moving audio for ${SINK_APP} (index:${SINK_INDEX}) to ${AUD_COMBINE}"
     pactl move-sink-input ${SINK_INDEX} ${AUD_COMBINE}
     AUD_MOVED_SINKS=1
   fi
-done < $TMP_SINKINPUTS
-rm -f $TMP_SINKINPUTS
+done < "${TMP_SINK_INPUTS}"
+rm -f "${TMP_SINK_INPUTS}"
 
 # If we moved some sinks the make our combine-sink monitor the recording source
 if [ ${AUD_MOVED_SINKS} -eq 1 ]; then
