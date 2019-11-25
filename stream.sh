@@ -37,6 +37,8 @@ VID_VSYNC=0
 AUD_CODEC="aac"
 AUD_SAMPLERATE=22050
 AUD_BITRATE=96k
+AUD_COMBINE="8-bit-vs-combine"
+AUD_COMBINE_DESC="8-bit-Vs-Combine"
 STREAM_OPTIONS=""
 
 # More encoder threads beyond a certain threshold increases latency and will
@@ -207,7 +209,7 @@ AUD_DEFAULT_MONITOR_NAME=$(pactl list short sources | grep RUNNING | grep monito
 
 # Create a combine-sink, with just the default monitor as a slave
 # - https://askubuntu.com/questions/60837/record-a-programs-output-with-pulseaudio/910879#910879
-export AUD_COMBINE_MODULE=$(pactl load-module module-combine-sink sink_name=8-bit-vs-combine slaves=${AUD_DEFAULT_MONITOR_DEVICE} sink_properties=device.description=8-bit-Vs-Combine)
+AUD_COMBINE_MODULE=$(pactl load-module module-combine-sink sink_name=${AUD_COMBINE} slaves=${AUD_DEFAULT_MONITOR_DEVICE} sink_properties=device.description=${AUD_COMBINE_DESC})
 
 # Look up sink-input index by property
 # - https://stackoverflow.com/questions/39736580/look-up-pulseaudio-sink-input-index-by-property
@@ -221,8 +223,8 @@ while IFS="" read -r SINK_INPUT || [ -n "$SINK_INPUT" ]; do
   SINK_INDEX=$(echo "${SINK_INPUT}" | cut -d':' -f2)
   # Only move the sink if it is a known application
   if [[ ${SINK_APP} == *"VICE"* ]] || [[ ${SINK_APP} == *"fuse-gtk"* ]]; then
-    echo "Moving audio for ${SINK_APP} (index:${SINK_INDEX}) to 8-bit-vs-combine"
-    pactl move-sink-input ${SINK_INDEX} 8-bit-vs-combine
+    echo "Moving audio for ${SINK_APP} (index:${SINK_INDEX}) to ${AUD_COMBINE}"
+    pactl move-sink-input ${SINK_INDEX} ${AUD_COMBINE}
     AUD_MOVED_SINKS=1
   fi
 done < $TMP_SINKINPUTS
@@ -230,10 +232,10 @@ rm -f $TMP_SINKINPUTS
 
 # If we moved some sinks the make our combine-sink monitor the recording source
 if [ ${AUD_MOVED_SINKS} -eq 1 ]; then
-  AUD_COMBINE_MONITOR_DEVICE=$(pactl list short sources | grep 8-bit-vs-combine.monitor | head -n 1 | cut -f1 | sed 's/ //g')
-  AUD_DEVICE=${AUD_COMBINE_MONITOR_DEVICE}
+  AUD_COMBINE_MONITOR_DEVICE=$(pactl list short sources | grep ${AUD_COMBINE}.monitor | head -n 1 | cut -f1 | sed 's/ //g')
+  AUD_RECORD_DEVICE=${AUD_COMBINE_MONITOR_DEVICE}
 else
-  AUD_DEVICE=${AUD_DEFAULT_MONITOR_DEVICE}
+  AUD_RECORD_DEVICE=${AUD_DEFAULT_MONITOR_DEVICE}
 fi
 
 # Stream/Capture the window and loopback audio as a low latency
@@ -245,11 +247,13 @@ elif [ "${LAUNCHER}" == "capture" ]; then
   echo "Capturing: ${LAUNCHER}-${STAMP}.mkv"
   OUTPUT="${LAUNCHER}-${STAMP}.mkv"
 fi
+
+# The ffmpeg pipeline
 echo " - ${VID_SIZE}@${VID_FPS}fps using ${VID_CODEC}/${VID_PRESET} (${VID_BITRATE}) and ${AUD_CODEC} (${AUD_BITRATE}) [${VID_PROFILE}@L${VID_LEVEL}]"
 ${FFMPEG} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
 -video_size ${VID_SIZE} -framerate ${VID_FPS} \
 -f x11grab -thread_queue_size 128 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
--f pulse -thread_queue_size 128 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_DEVICE} \
+-f pulse -thread_queue_size 128 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_RECORD_DEVICE} \
 -c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} -preset ${VID_PRESET} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_TUNING} ${VID_BT709} \
 -c:a ${AUD_CODEC} -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental \
 ${OUTPUT}
