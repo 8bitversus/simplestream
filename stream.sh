@@ -246,11 +246,11 @@ pacmd list-sink-inputs > "${TMP_LONG_INPUTS}"
 # Move sinks for known apps to our combine-sink
 AUD_MOVED_SINKS=0
 while IFS="" read -r SINK_INPUT || [ -n "${SINK_INPUT}" ]; do
-  # Resolve sink-index to client to app name
+  # Resolve sink-index client to app name
   SINK_INDEX=$(echo "${SINK_INPUT}" | cut -f1 | sed -e 's/ //g')
   SINK_CLIENT=$(echo "${SINK_INPUT}" | cut -f3 | sed -e 's/ //g' -e 's/-//g')
   if [ -n "${SINK_CLIENT}" ]; then
-    SINK_APP=$(grep client "${TMP_LONG_INPUTS}" | grep -v native-protocol.peer | grep ${SINK_CLIENT} | cut -d'<' -f2 | cut -d '>' -f1)
+    SINK_APP=$(grep client "${TMP_LONG_INPUTS}" | grep ${SINK_CLIENT} | cut -d'<' -f2 | cut -d '>' -f1)
     # Only move the sink if it is a known application
     if [[ ${SINK_APP} == "VICE" ]] || [[ ${SINK_APP} == *"fuse-gtk"* ]] || [[ ${SINK_APP} == "Fuse"* ]] || [[ ${SINK_APP} == "Caprice32"* ]]; then
       echo "Moving audio for ${SINK_APP} [index:${SINK_INDEX}][client:${SINK_CLIENT}] to ${AUD_COMBINE}"
