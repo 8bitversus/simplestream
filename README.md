@@ -12,3 +12,10 @@ computer emulators. Can also capture locally and record streams.
 
   * `play-stream.sh` - Plays a UDP or TCP stream using low latency `ffplay` or `mpv`.
   * `record-stream.sh` - Records a UDP or TCP stream in a Matroska container.
+
+# Requirements
+
+  - `ffmpeg`
+  - `nvidia-utils-xyx` (optional; required for h264_nvenc)
+  - `mpv` (optional)
+  - `vainfo` (optional; required for h264_vaapi)
