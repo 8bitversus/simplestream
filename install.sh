@@ -5,14 +5,20 @@ if [ `id -u` -ne 0 ]; then
     exit 1
 fi
 
+# Essentials components
+apt install -y coreutils grep pulseaudio-utils sed vainfo x11-utils
+
 # FFMPEG
 snap install ffmpeg
 
-# MPV
-apt install -y mpv vainfo
+# Caprice32
+snap install caprice32
 
-# FUSE & VICE
-apt install -y fuse-emulator-gtk fuse-emulator-sdl spectrum-roms vice
+# FUSE
+apt install -y fuse-emulator-gtk fuse-emulator-sdl spectrum-roms
+
+# VICE
+apt install -y vice
 
 # VICE ROMS
 cd /tmp
@@ -22,4 +28,7 @@ tar zxf vice-3.3.tar.gz
 find vice-*/data \
   -mindepth 1 \
   -type d \
-  -exec sudo cp -rnv {} /usr/lib/vice/ \;
+  -exec cp -rnv {} /usr/lib/vice/ \;
+
+# MPV
+apt install -y mpv
