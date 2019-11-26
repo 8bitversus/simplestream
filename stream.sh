@@ -231,7 +231,7 @@ trap "audio_cleanup" SIGINT SIGTERM
 # - https://askubuntu.com/questions/516899/how-do-i-stream-computer-audio-only-with-ffmpeg
 
 # Get default audio device
-AUD_DEFAULT_DEVICE=$(pactl list short sinks | grep RUNNING | grep -v 8-bit-vs-combine | head -n 1 | cut -f2 | sed 's/ //g')
+AUD_DEFAULT_DEVICE=$(pactl list short sinks | grep RUNNING | grep -v ${AUD_COMBINE} | head -n 1 | cut -f2 | sed 's/ //g')
 
 # Create a combine-sink, with just the default audio device as a slave
 # - https://askubuntu.com/questions/60837/record-a-programs-output-with-pulseaudio/910879#910879
