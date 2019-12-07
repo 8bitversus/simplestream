@@ -25,6 +25,11 @@ function usage {
   exit 1
 }
 
+function cleanup_trap() {
+  CLEANUP_PLAYER=$(killall ${PLAYER} 2>/dev/null)
+  exit
+}
+
 # TODO - validate the inputs
 # Check for optional parameters
 while [ $# -gt 0 ]; do
@@ -69,20 +74,26 @@ case ${IP_PROTO} in
   udp) STREAM_OPTIONS="";;
 esac
 
+# Call cleanup_trap() function on Ctrl+C 
+trap "cleanup_trap" SIGINT SIGTERM
+
 if [ "${LAUNCHER}" == "play-stream" ]; then
-  WIN_TITLE="${LAUNCHER} - ${PLAYER}"
-  case ${PLAYER} in
-    ffplay)
-      # Play a video stream with low latency
-      # - https://stackoverflow.com/questions/16658873/how-to-minimize-the-delay-in-a-live-streaming-with-ffmpeg
-      echo "Playing: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
-      ffplay -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
-        -fflags nobuffer+fastseek+flush_packets -flags low_delay -sync ext -framedrop -window_title "${WIN_TITLE}" -i "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
-      ;;  
-    mpv)
-      mpv --no-cache --untimed --profile=low-latency --title="${WIN_TITLE}" "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
-      ;;
-  esac
+  # Run the player in an infinite loop so is it always listening. Exit with Ctrl+C.
+  while true; do
+    WIN_TITLE="${LAUNCHER} - ${PLAYER}"
+    case ${PLAYER} in
+      ffplay)
+        # Play a video stream with low latency
+        # - https://stackoverflow.com/questions/16658873/how-to-minimize-the-delay-in-a-live-streaming-with-ffmpeg
+        echo "Playing: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
+        ffplay -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
+          -fflags nobuffer+fastseek+flush_packets -flags low_delay -sync ext -framedrop -window_title "${WIN_TITLE}" -i "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
+        ;;  
+      mpv)
+        mpv --no-cache --untimed --profile=low-latency --title="${WIN_TITLE}" "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
+        ;;
+    esac
+  done
 elif [ "${LAUNCHER}" == "record-stream" ]; then
   echo "Recording: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
   # Record a video stream in a Matroska container.
