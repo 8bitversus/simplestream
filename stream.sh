@@ -200,6 +200,7 @@ if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]  &&  [ "${VID_CODEC}
   VID_PRESET="llhq"
   VID_PRESET_FULL="-preset ${VID_PRESET}"
   VID_CODEC_TUNING="-filter:v scale=out_color_matrix=bt709 -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -color_primaries bt709 -color_trc bt709 -colorspace bt709"
+  DISABLE_FLIPPING=$(/usr/bin/nvidia-settings -a ${DISPLAY}/AllowFlipping=0)
 elif [ ${TEST_VAAPI} -eq 0 ] && [ "${VID_CODEC}" == "h264_vaapi" ]; then
   VID_COLORSPACE="vaapi_vld"
   VID_PRESET_FULL=""
