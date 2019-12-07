@@ -57,6 +57,7 @@ Simple Stream is a shell script that uses the following awesome software.
   - `coreutils`
   - `grep`
   - `ffmpeg` (snap preferred since it enables h264_nvenc and h264_vaapi)
+  - `nvidia-settings` (optional; required for reliable capture when using nvidia drivers)
   - `nvidia-utils-xyx` (optional; required for h264_nvenc)
   - `mpv` (optional)
   - `pulseaudio-utils`
