@@ -219,12 +219,12 @@ else
   VID_CODEC_TUNING="-x264opts no-sliced-threads:no-scenecut -tune zerolatency -bsf:v h264_mp4toannexb -sc_threshold 0 -filter:v scale=out_color_matrix=bt709 -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -color_primaries bt709 -color_trc bt709 -colorspace bt709"
 fi
 
-function audio_cleanup() {
+function cleanup_trap() {
   pactl unload-module ${AUD_COMBINE_MODULE} 2>/dev/null
 }
 
-# Call audio_cleanup() function on Ctrl+C 
-trap "audio_cleanup" SIGINT SIGTERM
+# Call cleanup_trap() function on Ctrl+C 
+trap "cleanup_trap" SIGINT SIGTERM
 
 # Get the audio loopback device to record from; excludes Microphones.
 # - https://obsproject.com/forum/resources/include-exclude-audio-sources-using-pulseaudio-linux.95/
