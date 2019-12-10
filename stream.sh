@@ -153,7 +153,7 @@ esac
 # - https://unix.stackexchange.com/questions/14159/how-do-i-find-the-window-dimensions-and-position-accurately-including-decoration
 TMP_XWININFO=$(mktemp -u)
 echo -e "Please select the window you\nwould like to stream/capture by clicking the\nmouse in that window."
-xwininfo | tee ${TMP_XWININFO}
+xwininfo | tee ${TMP_XWININFO} > /dev/null
 
 # Crop menus and status areas from known emulators.
 WIN_ID=$(grep "Window id:" ${TMP_XWININFO})
