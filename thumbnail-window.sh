@@ -16,7 +16,10 @@ echo "Resizing: ${WINDOW_ID} to ${RES_X}x${RES_Y}"
 wmctrl -i -r ${WINDOW_ID} -e 0,0,0,${RES_X},${RES_Y}
 # Raise the window
 wmctrl -i -R ${WINDOW_ID}
-if [ -e $(which mate-screenshot) ]; then
+# Take the screenshot
+if [ -e $(which scrot) ]; then
+  scrot --focused --quality 90 ${HOME}/thumbnail.jpg
+elif [ -e $(which mate-screenshot) ]; then
   mate-screenshot --window --remove-border
 else
   echo "WARNING! No supported screenshot tool found."
