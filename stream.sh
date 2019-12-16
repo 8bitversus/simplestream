@@ -31,8 +31,8 @@ VID_VSYNC=0
 
 # Audio encoding settings
 AUD_CODEC="aac"
-AUD_SAMPLERATE=22050
-AUD_BITRATE=96k
+AUD_SAMPLERATE="22050"
+AUD_BITRATE="96k"
 AUD_COMBINE="8-bit-vs-combine"
 AUD_COMBINE_DESC="8-bit-Vs-Combine"
 STREAM_OPTIONS=""
@@ -53,12 +53,14 @@ fi
 function usage {
   echo
   echo "Usage"
-  echo "  ${LAUNCHER} [--ffmpeg /snap/bin/ffmpeg] [--fps 60] [--ip 192.168.0.1]"
-  echo "              [--mouse] [--port 4864] [--protocol tcp|udp]"
+  echo "  ${LAUNCHER} [--abitrate 96k] [--asamplerate 22050] [--ffmpeg /snap/bin/ffmpeg]"
+  echo "              [--fps 60] [--ip 192.168.0.1] [--mouse] [--port 4864] [--protocol tcp|udp]"
   echo "              [--stream-options '?fifo_size=10240'] [--vaapi-device /dev/dri/renderD128]"
   echo "              [--vbitrate 640k] [--vcodec libx264] [--vsync] [--help]"
   echo
   echo "You can also pass optional parameters"
+  echo "  --abitrate      : Set audio codec bitrate for the stream."
+  echo "  --asamplerate   : Set audio sample rate for the stream."
   echo "  --ffmpeg        : Set the full path to ffmpeg."
   echo "  --fps           : Set framerate to stream at."
   echo "  --ip            : Set the IP address to stream to."
@@ -79,6 +81,14 @@ function usage {
 # Check for optional parameters
 while [ $# -gt 0 ]; do
   case "${1}" in
+    -abitrate|--abitrate)
+      AUD_BITRATE="$2"
+      shift
+      shift;;
+    -asamplerate|--asamplerate)
+      AUD_SAMPLERATE="$2"
+      shift
+      shift;;
     -ffmpeg|--ffmpeg)
       FFMPEG="$2"
       shift
