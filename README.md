@@ -61,6 +61,7 @@ Simple Stream is a shell script that uses the following awesome software.
   - `nvidia-utils-xyx` (optional; required for h264_nvenc)
   - `mpv` (optional)
   - `pulseaudio-utils`
+  - `scrot`
   - `sed`
   - `vainfo` (optional; required for h264_vaapi)
   - `x11-utils`
