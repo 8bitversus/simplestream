@@ -231,6 +231,20 @@ fi
 
 function cleanup_trap() {
   pactl unload-module ${AUD_COMBINE_MODULE} 2>/dev/null
+
+  # Are there any module-combine-sink left behind?
+  local TMP_COMBINE_MODULES=$(mktemp -u)
+  pactl list modules short | grep module-combine-sink | grep "${AUD_COMBINE}" > "${TMP_COMBINE_MODULES}"
+  if [ -s "${TMP_COMBINE_MODULES}" ]; then
+    echo "Found: module-combine-sink for ${AUD_COMBINE}"
+    while IFS="" read -r MODULE_INPUT || [ -n "${MODULE_INPUT}" ]; do
+      # Resolve module index
+      local MODULE_INDEX=$(echo "${MODULE_INPUT}" | cut -f1 | sed -e 's/ //g')
+      echo " - Unloading: ${MODULE_INDEX}"
+      pactl unload-module "${MODULE_INDEX}"
+    done < "${TMP_COMBINE_MODULES}"
+  fi
+  rm -f "${TMP_COMBINE_MODULES}"
 }
 
 # Call cleanup_trap() function on Ctrl+C 
