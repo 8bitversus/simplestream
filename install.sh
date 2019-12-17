@@ -18,7 +18,7 @@ snap install caprice32
 apt install -y fuse-emulator-gtk fuse-emulator-sdl spectrum-roms
 
 # VICE
-apt install -y vice
+apt install -y vice libmp3lame0
 
 # VICE ROMS
 cd /tmp
