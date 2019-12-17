@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# The purpose of this script is to launch VICE emualting a "breadbin"
+# Commodore 64 in a predictable way for streaming. We're based in the UK so
+# keen to emulate PAL refresh rates and timings to recreate (as best we can)
+# the computers we owned and loved in the 1980s.
+
 x64 -default \
   -model c64 \
   -pal \
