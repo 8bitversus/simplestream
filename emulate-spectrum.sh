@@ -7,5 +7,5 @@ fuse-gtk --graphics-filter paltv2x \
          --machine 48 \
          --pal-tv2x \
          --sound \
-         --volume-beeper 10 \
+         --volume-beeper 20 \
          "$@"
