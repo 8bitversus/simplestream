@@ -24,5 +24,5 @@ x64 -default \
   -VICIIcrtscanlineshade 650 \
   -VICIIoddlinesphase 1000 \
   -VICIIoddlinesoffset 1100 \
-  -soundvolume 70 \
+  -soundvolume 20 \
   "$@"
