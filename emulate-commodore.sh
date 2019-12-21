@@ -10,6 +10,8 @@ x64 -default \
   -pal \
   -joydev1 4 \
   -joydev2 5 \
+  -refresh 1 \
+  -soundvolume 20 \
   -VICIIdsize \
   -VICIIdscan \
   -VICIIhwscale \
@@ -24,5 +26,4 @@ x64 -default \
   -VICIIcrtscanlineshade 650 \
   -VICIIoddlinesphase 1000 \
   -VICIIoddlinesoffset 1100 \
-  -soundvolume 20 \
   "$@"
