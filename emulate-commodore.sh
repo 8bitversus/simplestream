@@ -10,10 +10,11 @@ x64 -default \
   -pal \
   -joydev1 4 \
   -joydev2 5 \
+  -keepaspect \
   -refresh 1 \
   -soundvolume 20 \
   +trueaspect \
-  -VICIIborders 0 \
+  -VICIIborders 3 \
   -VICIIdsize \
   -VICIIdscan \
   -VICIIhwscale \

@@ -14,7 +14,7 @@ x64 -default \
   -refresh 1 \
   -soundvolume 20 \
   +trueaspect \
-  -VICIIborders 3 \
+  -VICIIborders 0 \
   -VICIIdsize \
   -VICIIdscan \
   -VICIIhwscale \
