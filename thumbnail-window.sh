@@ -18,7 +18,7 @@ wmctrl -i -r ${WINDOW_ID} -e 0,0,0,${RES_X},${RES_Y}
 wmctrl -i -R ${WINDOW_ID}
 # Take the screenshot
 if [ -e $(which scrot) ]; then
-  scrot --focused --quality 90 ${HOME}/thumbnail.jpg
+  scrot --focused ${HOME}/thumbnail.png
 elif [ -e $(which mate-screenshot) ]; then
   mate-screenshot --window --remove-border
 else
