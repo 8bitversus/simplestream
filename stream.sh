@@ -184,23 +184,33 @@ WIN_ID=$(grep "Window id:" ${TMP_XWININFO})
 if [[ ${WIN_ID} == *"VICE"* ]]; then
   TOP_OFFSET=30
   BOT_OFFSET=$((TOP_OFFSET + 49))
+  LEFT_OFFSET=0
+  RIGHT_OFFSET=0
 # Fuse SDL doesn't require cropping
 elif [[ ${WIN_ID} == *"Fuse -"* ]]; then
-  TOP_OFFSET=0
-  BOT_OFFSET=0
+  TOP_OFFSET=48
+  BOT_OFFSET=$((TOP_OFFSET + 48))
+  LEFT_OFFSET=64
+  RIGHT_OFFSET=64
 # Fuse GTK does require cropping
 elif [[ ${WIN_ID} == *"Fuse"* ]]; then
-  TOP_OFFSET=30
-  BOT_OFFSET=$((TOP_OFFSET + 26))
+  TOP_OFFSET=78
+  BOT_OFFSET=$((TOP_OFFSET + 74))
+  LEFT_OFFSET=64
+  RIGHT_OFFSET=64
 else
   TOP_OFFSET=0
   BOT_OFFSET=0
+  LEFT_OFFSET=0
+  RIGHT_OFFSET=0
 fi
 
 CAPTURE_X=$(sed -n -e "s/^ \+Absolute upper-left X: \+\([0-9]\+\).*/\1/p" ${TMP_XWININFO})
+CAPTURE_X=$((CAPTURE_X + LEFT_OFFSET))
 CAPTURE_Y=$(sed -n -e "s/^ \+Absolute upper-left Y: \+\([0-9]\+\).*/\1/p" ${TMP_XWININFO})
 CAPTURE_Y=$((CAPTURE_Y + TOP_OFFSET))
 CAPTURE_WIDTH=$(sed -n -e "s/^ \+Width: \+\([0-9]\+\).*/\1/p" ${TMP_XWININFO})
+CAPTURE_WIDTH=$((CAPTURE_WIDTH - LEFT_OFFSET - RIGHT_OFFSET))
 [ $((CAPTURE_WIDTH%2)) -ne 0 ] && ((CAPTURE_WIDTH--))
 CAPTURE_HEIGHT=$(sed -n -e "s/^ \+Height: \+\([0-9]\+\).*/\1/p" ${TMP_XWININFO})
 CAPTURE_HEIGHT=$((CAPTURE_HEIGHT - BOT_OFFSET))
