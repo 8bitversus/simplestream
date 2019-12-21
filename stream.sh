@@ -26,8 +26,8 @@ VID_PROFILE="high"
 VID_LEVEL="4.2"
 # Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
 VID_MOUSE=0
-# Disable vsync in the encoder/streamer; change to 1 to enable vsync
-VID_VSYNC=0
+# Select vsync in the encoder/streamer; default is drop
+VID_VSYNC="drop"
 
 # Audio encoding settings
 AUD_CODEC="aac"
@@ -56,7 +56,7 @@ function usage {
   echo "  ${LAUNCHER} [--abitrate 96k] [--asamplerate 22050] [--ffmpeg /snap/bin/ffmpeg]"
   echo "              [--fps 60] [--ip 192.168.0.1] [--mouse] [--port 4864] [--protocol tcp|udp]"
   echo "              [--stream-options '?fifo_size=10240'] [--vaapi-device /dev/dri/renderD128]"
-  echo "              [--vbitrate 640k] [--vcodec libx264] [--vsync] [--help]"
+  echo "              [--vbitrate 640k] [--vcodec libx264] [--vsync auto|passthrough|cfr|vfr|drop] [--help]"
   echo
   echo "You can also pass optional parameters"
   echo "  --abitrate      : Set audio codec bitrate for the stream."
@@ -71,7 +71,7 @@ function usage {
   echo "  --vaapi-device  : Set the full path to the VA-API device; such as /dev/dri/renderD128"
   echo "  --vbitrate      : Set video codec bitrate for the stream."
   echo "  --vcodec        : Set video codec for the stream. [libx264|h264_nvenc|h264_vaapi]"
-  echo "  --vsync         : Enable vsync in the video encoder; disabled by default."
+  echo "  --vsync         : Set vsync method in the video encoder; 'drop' by default."
   echo "  --help          : This help."
   echo
   exit 1
@@ -129,7 +129,8 @@ while [ $# -gt 0 ]; do
       shift
       shift;;
     -vsync|--vsync)
-      VID_VSYNC=1
+      VID_VSYNC="$2"
+      shift
       shift;;
     -h|--h|-help|--help)
       usage;;
@@ -151,6 +152,19 @@ fi
 
 if [ "${VID_CODEC}" != "libx264" ] && [ "${VID_CODEC}" != "h264_nvenc" ] && [ "${VID_CODEC}" != "h264_vaapi" ]; then
   echo "ERROR! Unknown video codec: ${VID_CODEC}. Quitting."
+  exit 1
+fi
+
+if [ "${VID_VSYNC}" != "auto" ] && \
+   [ "${VID_VSYNC}" != "passthrough" ] && \
+   [ "${VID_VSYNC}" != "cfr" ] && \
+   [ "${VID_VSYNC}" != "vfr" ] && \
+   [ "${VID_VSYNC}" != "drop" ] && \
+   [ "${VID_VSYNC}" != "-1" ] && \
+   [ "${VID_VSYNC}" != "0" ] && \
+   [ "${VID_VSYNC}" != "1" ] && \
+   [ "${VID_VSYNC}" != "2" ]; then
+  echo "ERROR! Unknown vsync method: ${VID_VSYNC}. Quitting."
   exit 1
 fi
 
