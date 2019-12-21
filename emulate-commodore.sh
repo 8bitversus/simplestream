@@ -12,6 +12,8 @@ x64 -default \
   -joydev2 5 \
   -refresh 1 \
   -soundvolume 20 \
+  +trueaspect \
+  -VICIIborders 0 \
   -VICIIdsize \
   -VICIIdscan \
   -VICIIhwscale \
