@@ -31,8 +31,7 @@ while [ $# -gt 0 ]; do
     -h|--h|-help|--help)
       usage;;
     *)
-      echo "ERROR! \"${1}\" is not a supported parameter."
-      usage;;
+      break;;
   esac
 done
 
@@ -47,7 +46,7 @@ if [ "${BORDERS}" != "0" ] && [ "${BORDERS}" != "3" ]; then
 fi
 
 x64 -default \
-  -model ${MODEL} \
+  -model "${MODEL}" \
   -pal \
   -joydev1 4 \
   -joydev2 5 \

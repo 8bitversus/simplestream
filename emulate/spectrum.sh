@@ -41,8 +41,7 @@ while [ $# -gt 0 ]; do
     -h|--h|-help|--help)
       usage;;
     *)
-      echo "ERROR! \"${1}\" is not a supported parameter."
-      usage;;
+      break;;
   esac
 done
 
