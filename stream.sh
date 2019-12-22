@@ -26,8 +26,8 @@ VID_PROFILE="high"
 VID_LEVEL="4.2"
 # Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
 VID_MOUSE=0
-# Select vsync in the encoder/streamer; default is drop
-VID_VSYNC="drop"
+# Select vsync in the encoder/streamer; default is -1 (auto)
+VID_VSYNC="-1"
 
 # Audio encoding settings
 AUD_CODEC="aac"
@@ -71,7 +71,7 @@ function usage {
   echo "  --vaapi-device  : Set the full path to the VA-API device; such as /dev/dri/renderD128"
   echo "  --vbitrate      : Set video codec bitrate for the stream."
   echo "  --vcodec        : Set video codec for the stream. [libx264|h264_nvenc|h264_vaapi]"
-  echo "  --vsync         : Set vsync method in the video encoder; 'drop' by default."
+  echo "  --vsync         : Set vsync method in the video encoder; 'auto' by default."
   echo "  --help          : This help."
   echo
   exit 1
