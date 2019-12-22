@@ -14,7 +14,8 @@ else
 fi
 
 MACHINE="48"
-VOL_BEEPER="20"
+BEEPER="20"
+VOLUME="30"
 
 function usage {
   echo "HELP! There is no help here. Ask Wimpy!"
@@ -31,11 +32,15 @@ while [ $# -gt 0 ]; do
       MACHINE="48"
       shift;;
     -beeper|--beeper)
-      VOL_BEEPER="$2"
+      BEEPER="$2"
       shift
       shift;;
     -machine|--machine)
       MACHINE="$2"
+      shift
+      shift;;
+    -volume|--volume)
+      VOLUME="$2"
       shift
       shift;;
     -h|--h|-help|--help)
@@ -62,5 +67,6 @@ ${FUSE} --graphics-filter paltv2x \
          --machine "${MACHINE}" \
          --pal-tv2x \
          --sound \
-         --volume-beeper "${VOL_BEEPER}" \
+         --volume-ay "${VOLUME}" \
+         --volume-beeper "${BEEPER}" \
          "$@"
