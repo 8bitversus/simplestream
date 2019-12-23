@@ -210,14 +210,14 @@ if [[ ${WIN_ID} == *"VICE"* ]]; then
   RIGHT_OFFSET=0
 # Fuse SDL doesn't require cropping
 elif [[ ${WIN_ID} == *"Fuse -"* ]]; then
-  TOP_OFFSET=48
-  BOT_OFFSET=$((TOP_OFFSET + 48))
+  TOP_OFFSET=47
+  BOT_OFFSET=$((TOP_OFFSET + 47))
   LEFT_OFFSET=64
   RIGHT_OFFSET=64
 # Fuse GTK does require cropping
 elif [[ ${WIN_ID} == *"Fuse"* ]]; then
-  TOP_OFFSET=78
-  BOT_OFFSET=$((TOP_OFFSET + 74))
+  TOP_OFFSET=77
+  BOT_OFFSET=$((TOP_OFFSET + 73))
   LEFT_OFFSET=64
   RIGHT_OFFSET=64
 else
