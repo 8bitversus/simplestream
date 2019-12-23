@@ -60,12 +60,11 @@ if [ "${MACHINE}" != "48" ] && [ "${MACHINE}" != "128" ]; then
   exit 1
 fi
 
-${FUSE} --graphics-filter paltv2x \
+${FUSE} --graphics-filter 2x \
          --joystick-1-output 2 \
          --joystick-2-output 2 \
          --kempston \
          --machine "${MACHINE}" \
-         --pal-tv2x \
          --sound \
          --volume-ay "${VOLUME}" \
          --volume-beeper "${BEEPER}" \
