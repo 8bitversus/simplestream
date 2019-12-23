@@ -56,7 +56,7 @@ x64 -default \
   +trueaspect \
   -VICIIborders "${BORDERS}" \
   -VICIIdsize \
-  -VICIIdscan \
+  +VICIIdscan \
   -VICIIhwscale \
   -VICIIfilter 1 \
   -VICIIintpal \
