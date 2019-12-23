@@ -66,7 +66,7 @@ x64 -default \
   -VICIItint 1100 \
   -VICIIgamma 3600 \
   -VICIIcrtblur 0 \
-  -VICIIcrtscanlineshade 650 \
+  -VICIIcrtscanlineshade 550 \
   -VICIIoddlinesphase 1000 \
-  -VICIIoddlinesoffset 1100 \
+  -VICIIoddlinesoffset 1200 \
   "$@"
