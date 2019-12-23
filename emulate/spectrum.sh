@@ -13,7 +13,7 @@ else
   FUSE=""
 fi
 
-MACHINE="48"
+MACHINE="128"
 BEEPER="20"
 VOLUME="30"
 
