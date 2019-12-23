@@ -345,7 +345,7 @@ fi
 # H.264/AAC in MPEG2-TS (stream) or Matroska (capture) container
 if [ "${LAUNCHER}" == "stream" ]; then
   echo "Streaming: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
-  OUTPUT="-f ${VID_CONTAINER} ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
+  OUTPUT="-f ${VID_CONTAINER} -metadata service_name=8BitVersusStream -metadata service_provider=8BitVersus ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
 elif [ "${LAUNCHER}" == "capture" ]; then
   echo "Capturing: ${LAUNCHER}-${STAMP}.mkv"
   OUTPUT="${LAUNCHER}-${STAMP}.mkv"
