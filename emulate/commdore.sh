@@ -56,9 +56,9 @@ x64 -default \
   +trueaspect \
   -VICIIborders "${BORDERS}" \
   -VICIIdsize \
-  +VICIIdscan \
+  -VICIIdscan \
   -VICIIhwscale \
-  -VICIIfilter 1 \
+  -VICIIfilter 0 \
   -VICIIintpal \
   -VICIIbrightness 1100 \
   -VICIIcontrast 1400 \
