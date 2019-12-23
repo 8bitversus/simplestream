@@ -60,11 +60,11 @@ x64 -default \
   -VICIIhwscale \
   -VICIIfilter 1 \
   -VICIIintpal \
-  -VICIIsaturation 1600 \
-  -VICIIcontrast 1400 \
   -VICIIbrightness 1100 \
-  -VICIIgamma 3600 \
+  -VICIIcontrast 1400 \
+  -VICIIsaturation 1600 \
   -VICIItint 1100 \
+  -VICIIgamma 3600 \
   -VICIIcrtblur 0 \
   -VICIIcrtscanlineshade 650 \
   -VICIIoddlinesphase 1000 \
