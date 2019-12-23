@@ -21,7 +21,9 @@ VID_CODEC="h264_nvenc"
 VID_FPS="60"
 VID_GOP=$((VID_FPS * 2))
 VID_BITRATE="640k"
-VID_COLORSPACE="yuv420p"
+VID_PIXELFORMAT="yuv420p"
+# Set the colour space to use; bt601 preserves the colour from emulators so is the default.
+VID_COLORSPACE="bt601"
 VID_PROFILE="high"
 VID_LEVEL="4.2"
 # Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
@@ -168,6 +170,26 @@ if [ "${VID_VSYNC}" != "auto" ] && \
   exit 1
 fi
 
+# Set the appropriate colour space/matrix variables
+case ${VID_COLORSPACE} in
+  bt601)
+    # FIXME! This is a crude way to distinguish PAL/NTSC video
+    case ${VID_FPS} in
+      25|50)
+        VID_COLORMATRIX="gamma28"
+        VID_COLORSPACE="bt470bg"
+      ;;
+      30|60)
+        VID_COLORMATRIX="smpte170m"
+        VID_COLORSPACE="smpte170m"
+      ;;
+    esac
+    ;;
+  bt709)
+    VID_COLORMATRIX="bt709"
+    ;;
+esac
+
 # Use the appropriate container based on the protocol selected.
 case ${IP_PROTO} in
   tcp|udp) VID_CONTAINER="mpegts";;
@@ -233,10 +255,10 @@ TEST_VAAPI=$?
 if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]  &&  [ "${VID_CODEC}" == "h264_nvenc" ]; then
   VID_PRESET="llhq"
   VID_PRESET_FULL="-preset ${VID_PRESET}"
-  VID_CODEC_TUNING="-filter:v scale=out_color_matrix=bt709 -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -color_primaries bt709 -color_trc bt709 -colorspace bt709"
+  VID_CODEC_TUNING="-filter:v scale=out_color_matrix=${VID_COLORMATRIX} -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE}"
   DISABLE_FLIPPING=$(nvidia-settings -a ${DISPLAY}/AllowFlipping=0)
 elif [ ${TEST_VAAPI} -eq 0 ] && [ "${VID_CODEC}" == "h264_vaapi" ]; then
-  VID_COLORSPACE="vaapi_vld"
+  VID_PIXELFORMAT="vaapi_vld"
   VID_PRESET_FULL=""
   VID_CODEC_TUNING="-vaapi_device ${VAAPI_DEVICE} -filter:v format=nv12,hwupload -vsync ${VID_VSYNC} -b:v ${VID_BITRATE} -g ${VID_GOP}"
   if [ ! -e "${VAAPI_DEVICE}" ]; then
@@ -250,7 +272,7 @@ else
   VID_CODEC="libx264"
   VID_PRESET="veryfast"
   VID_PRESET_FULL="-preset ${VID_PRESET}"
-  VID_CODEC_TUNING="-x264opts no-sliced-threads:no-scenecut -tune zerolatency -bsf:v h264_mp4toannexb -sc_threshold 0 -filter:v scale=out_color_matrix=bt709 -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -color_primaries bt709 -color_trc bt709 -colorspace bt709"
+  VID_CODEC_TUNING="-x264opts no-sliced-threads:no-scenecut -tune zerolatency -bsf:v h264_mp4toannexb -sc_threshold 0 -filter:v scale=out_color_matrix=${VID_COLORMATRIX} -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE}"
 fi
 
 function cleanup_trap() {
@@ -335,7 +357,7 @@ ${FFMPEG} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
 -video_size ${VID_SIZE} -framerate ${VID_FPS} \
 -f x11grab -thread_queue_size 256 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
 -f pulse -thread_queue_size 256 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_RECORD_DEVICE} \
--c:v ${VID_CODEC} -pix_fmt ${VID_COLORSPACE} ${VID_PRESET_FULL} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_TUNING} \
+-c:v ${VID_CODEC} -pix_fmt ${VID_PIXELFORMAT} ${VID_PRESET_FULL} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_TUNING} \
 -c:a ${AUD_CODEC} -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental \
 ${OUTPUT}
 cleanup_trap
