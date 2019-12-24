@@ -159,6 +159,8 @@ if [ "${VID_VSYNC}" != "auto" ] && \
 fi
 
 # Set the appropriate colour space/matrix variables
+#  - https://stackoverflow.com/questions/37255690/ffmpeg-format-settings-matrix-bt709
+#  - https://kdenlive.org/en/project/color-hell-ffmpeg-transcoding-and-preserving-bt-601/
 case ${VID_COLORSPACE} in
   bt601)
     # FIXME! This is a crude way to distinguish PAL/NTSC video
