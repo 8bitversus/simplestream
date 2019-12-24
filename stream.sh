@@ -32,7 +32,7 @@ VID_MOUSE=0
 VID_VSYNC="-1"
 
 # Audio encoding settings
-AUD_CODEC="aac"
+AUD_CODEC="mp2"
 AUD_SAMPLERATE="22050"
 AUD_BITRATE="96k"
 AUD_COMBINE="8-bit-vs-combine"
