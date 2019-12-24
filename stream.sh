@@ -29,7 +29,7 @@ VID_LEVEL="4.2"
 # Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
 VID_MOUSE=0
 # Select vsync in the encoder/streamer; default is -1 (auto)
-VID_VSYNC="-1"
+VID_VSYNC="cfr"
 
 # Audio encoding settings
 AUD_CODEC="mp2"
