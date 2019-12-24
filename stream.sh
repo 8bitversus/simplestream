@@ -40,18 +40,6 @@ AUD_COMBINE_DESC="8-bit-Vs-Combine"
 STREAM_OPTIONS=""
 VAAPI_DEVICE="/dev/dri/renderD128"
 
-# More encoder threads beyond a certain threshold increases latency and will
-# have a higher encoding memory footprint. Quality degradation is more
-# prominent with higher thread counts in constant bitrate modes and
-# near-constant bitrate mode called VBV (video buffer verifier), due to
-# increased encode delay. 
-CPU_CORES=$(cat /proc/cpuinfo | grep "cpu cores" | head -n 1 | cut -d':' -f2 | sed 's/ //g')
-if [ ${CPU_CORES} -ge 4 ]; then
-  THREADS=$((CPU_CORES / 2))
-else
-  THREADS=0
-fi
-
 function usage {
   echo
   echo "Usage"
@@ -256,18 +244,24 @@ TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')
 TEST_VAINFO=$(vainfo 2>/dev/null)
 TEST_VAAPI=$?
 
-# Format colour matrix to BT.709 to prevent colours "washing out"
-#  - https://stackoverflow.com/questions/37255690/ffmpeg-format-settings-matrix-bt709
-#  - https://kdenlive.org/en/project/color-hell-ffmpeg-transcoding-and-preserving-bt-601/
+# More encoder threads beyond a certain threshold increases latency
+# (~1 frame per thread) and will have a higher encoding memory footprint.
+# Quality degradation is more prominent with higher thread counts in
+# constant bitrate modes and near-constant bitrate mode called VBV
+# (video buffer verifier), due to increased encode delay.
+# 
+# Therefore use 1 thread when using h264_nvenc/h264_vaapi encoding and 2 threads when using libx264
 if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]  &&  [ "${VID_CODEC}" == "h264_nvenc" ]; then
   VID_PRESET="llhq"
   VID_PRESET_FULL="-preset ${VID_PRESET}"
   VID_CODEC_TUNING="-filter:v scale=out_color_matrix=${VID_COLORMATRIX} -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE}"
+  THREADS=1
   DISABLE_FLIPPING=$(nvidia-settings -a ${DISPLAY}/AllowFlipping=0)
 elif [ ${TEST_VAAPI} -eq 0 ] && [ "${VID_CODEC}" == "h264_vaapi" ]; then
   VID_PIXELFORMAT="vaapi_vld"
   VID_PRESET_FULL=""
   VID_CODEC_TUNING="-vaapi_device ${VAAPI_DEVICE} -filter:v format=nv12,hwupload -vsync ${VID_VSYNC} -b:v ${VID_BITRATE} -g ${VID_GOP}"
+  THREADS=1
   if [ ! -e "${VAAPI_DEVICE}" ]; then
     echo "ERROR! Could not find VA-API device: ${VAAPI_DEVICE}. Quitting."
     exit 1
@@ -280,6 +274,12 @@ else
   VID_PRESET="veryfast"
   VID_PRESET_FULL="-preset ${VID_PRESET}"
   VID_CODEC_TUNING="-x264opts no-sliced-threads:no-scenecut -tune zerolatency -bsf:v h264_mp4toannexb -sc_threshold 0 -filter:v scale=out_color_matrix=${VID_COLORMATRIX} -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE}"
+  CPU_CORES=$(cat /proc/cpuinfo | grep "cpu cores" | head -n 1 | cut -d':' -f2 | sed 's/ //g')
+  if [ ${CPU_CORES} -ge 2 ]; then
+    THREADS=2
+  else
+    THREADS=1
+  fi
 fi
 
 function cleanup_trap() {
