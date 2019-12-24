@@ -20,7 +20,7 @@ IP_ADDR="127.0.0.1"
 VID_CODEC="h264_nvenc"
 VID_FPS="60"
 VID_GOP=$((VID_FPS * 2))
-VID_BITRATE="640k"
+VID_BITRATE="0k"
 VID_PIXELFORMAT="yuv420p"
 # Set the colour space to use; bt601 preserves the colour from emulators so is the default.
 VID_COLORSPACE="bt601"
@@ -240,6 +240,13 @@ CAPTURE_HEIGHT=$((CAPTURE_HEIGHT - BOT_OFFSET))
 rm -f ${TMP_XWININFO}
 VID_CAPTURE="${DISPLAY}+${CAPTURE_X},${CAPTURE_Y}"
 VID_SIZE="${CAPTURE_WIDTH}x${CAPTURE_HEIGHT}"
+
+# If video bitrate was not manually provided, dynamically calculate it
+if [ "${VID_BITRATE}" == "0k" ]; then
+  VID_BITRATE=$(( (((CAPTURE_WIDTH/8) * VID_FPS)/10) + (CAPTURE_HEIGHT/3) ))
+  [ $((VID_BITRATE%2)) -ne 0 ] && ((VID_BITRATE++))
+  VID_BITRATE="${VID_BITRATE}k"
+fi
 
 # Do we have nvenc capable hardware?
 TEST_NVENC=$(nvidia-smi -q | grep Encoder | wc -l)
