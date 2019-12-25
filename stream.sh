@@ -262,13 +262,17 @@ TEST_VAAPI=$?
 if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]  &&  [ "${VID_CODEC}" == "h264_nvenc" ]; then
   VID_PRESET="llhq"
   VID_PRESET_FULL="-preset ${VID_PRESET}"
-  VID_CODEC_TUNING="-filter:v scale=out_color_matrix=${VID_COLORMATRIX} -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE}"
+  VID_CODEC_COMMON="-b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
+  VID_CODEC_EXTRA="-filter:v scale=out_color_matrix=${VID_COLORMATRIX} -no-scenecut 1"
+  VID_CODEC_COLORS="-color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE}"
   THREADS=1
   DISABLE_FLIPPING=$(nvidia-settings -a ${DISPLAY}/AllowFlipping=0)
 elif [ ${TEST_VAAPI} -eq 0 ] && [ "${VID_CODEC}" == "h264_vaapi" ]; then
   VID_PIXELFORMAT="vaapi_vld"
   VID_PRESET_FULL=""
-  VID_CODEC_TUNING="-vaapi_device ${VAAPI_DEVICE} -filter:v format=nv12,hwupload -vsync ${VID_VSYNC} -b:v ${VID_BITRATE} -g ${VID_GOP}"
+  VID_CODEC_COMMON="-b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
+  VID_CODEC_EXTRA="-vaapi_device ${VAAPI_DEVICE} -filter:v format=${VID_PIXELFORMAT},hwupload"
+  VID_CODEC_COLORS=""
   THREADS=1
   if [ ! -e "${VAAPI_DEVICE}" ]; then
     echo "ERROR! Could not find VA-API device: ${VAAPI_DEVICE}. Quitting."
@@ -281,7 +285,9 @@ else
   VID_CODEC="libx264"
   VID_PRESET="veryfast"
   VID_PRESET_FULL="-preset ${VID_PRESET}"
-  VID_CODEC_TUNING="-x264opts no-sliced-threads:no-scenecut -tune zerolatency -bsf:v h264_mp4toannexb -sc_threshold 0 -filter:v scale=out_color_matrix=${VID_COLORMATRIX} -b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE}"
+  VID_CODEC_COMMON="-b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
+  VID_CODEC_EXTRA="-x264opts no-sliced-threads:no-scenecut -tune zerolatency -bsf:v h264_mp4toannexb"
+  VID_CODEC_COLORS="-color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE}"
   CPU_CORES=$(cat /proc/cpuinfo | grep "cpu cores" | head -n 1 | cut -d':' -f2 | sed 's/ //g')
   if [ ${CPU_CORES} -ge 2 ]; then
     THREADS=2
@@ -372,7 +378,7 @@ ${FFMPEG} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
 -video_size ${VID_SIZE} -framerate ${VID_FPS} \
 -f x11grab -thread_queue_size 256 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
 -f pulse -thread_queue_size 256 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_RECORD_DEVICE} \
--c:v ${VID_CODEC} -pix_fmt ${VID_PIXELFORMAT} ${VID_PRESET_FULL} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_TUNING} \
+-c:v ${VID_CODEC} -pix_fmt ${VID_PIXELFORMAT} ${VID_PRESET_FULL} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_COMMON} ${VID_CODEC_EXTRA} ${VID_CODEC_COLORS} \
 -c:a ${AUD_CODEC} -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} ${AUD_CODEC_EXTRA} \
 ${OUTPUT}
 cleanup_trap
