@@ -373,6 +373,8 @@ elif [ "${LAUNCHER}" == "capture" ]; then
 fi
 
 # The ffmpeg pipeline
+# - TODO -af "aresample=async=1:min_hard_comp=0.100000:first_pts=0"
+# - https://videoblerg.wordpress.com/2017/11/10/ffmpeg-and-how-to-use-it-wrong/
 echo " - ${VID_SIZE}@${VID_FPS}fps using ${VID_CODEC}/${VID_PRESET} (${VID_BITRATE}) and ${AUD_CODEC} (${AUD_BITRATE}) [${VID_PROFILE}@L${VID_LEVEL}]"
 ${FFMPEG} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
 -video_size ${VID_SIZE} -framerate ${VID_FPS} \
