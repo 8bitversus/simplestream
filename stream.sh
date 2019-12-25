@@ -140,6 +140,12 @@ if [ "${IP_PROTO}" != "tcp" ] && [ "${IP_PROTO}" != "udp" ]; then
   exit 1
 fi
 
+if [ "${AUD_CODEC}" == "aac" ]; then
+  AUD_CODEC_EXTRA="-strict experimental"
+else
+  AUD_CODEC_EXTRA=""
+fi
+
 if [ "${VID_CODEC}" != "libx264" ] && [ "${VID_CODEC}" != "h264_nvenc" ] && [ "${VID_CODEC}" != "h264_vaapi" ]; then
   echo "ERROR! Unknown video codec: ${VID_CODEC}. Quitting."
   exit 1
@@ -367,6 +373,6 @@ ${FFMPEG} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
 -f x11grab -thread_queue_size 256 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
 -f pulse -thread_queue_size 256 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_RECORD_DEVICE} \
 -c:v ${VID_CODEC} -pix_fmt ${VID_PIXELFORMAT} ${VID_PRESET_FULL} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_TUNING} \
--c:a ${AUD_CODEC} -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental \
+-c:a ${AUD_CODEC} -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} ${AUD_CODEC_EXTRA} \
 ${OUTPUT}
 cleanup_trap
