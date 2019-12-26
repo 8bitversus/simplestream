@@ -142,7 +142,7 @@ if [ "${IP_PROTO}" != "tcp" ] && [ "${IP_PROTO}" != "udp" ]; then
 fi
 
 if [ "${AUD_CODEC}" == "aac" ]; then
-  AUD_CODEC_EXTRA="-strict experimental"
+  AUD_CODEC_EXTRA="-bsf:a aac_adtstoasc"
 else
   AUD_CODEC_EXTRA=""
 fi
@@ -383,6 +383,6 @@ ${FFMPEG} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
 -f x11grab -thread_queue_size 256 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -src_range 0 -i ${VID_CAPTURE} \
 -f pulse -thread_queue_size 256 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_RECORD_DEVICE} \
 -c:v ${VID_CODEC} -pix_fmt ${VID_PIXELFORMAT} ${VID_PRESET_FULL} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_COMMON} ${VID_CODEC_EXTRA} ${VID_CODEC_COLORS} -dst_range 0 \
--c:a ${AUD_CODEC} -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} ${AUD_CODEC_EXTRA} \
+-c:a ${AUD_CODEC} -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental ${AUD_CODEC_EXTRA} \
 ${OUTPUT}
 cleanup_trap
