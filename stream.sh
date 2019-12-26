@@ -21,7 +21,7 @@ VID_CODEC="h264_nvenc"
 VID_FPS="60"
 VID_GOP=$((VID_FPS * 2))
 VID_BITRATE="0k"
-VID_PIXELFORMAT="yuv420p"
+VID_PIXELFORMAT="nv12"
 # Set the colour space to use; bt601 preserves the colour from emulators so is the default.
 VID_COLORSPACE="bt601"
 VID_SIGNAL="PAL"
