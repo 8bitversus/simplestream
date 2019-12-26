@@ -261,7 +261,7 @@ TEST_VAAPI=$?
 # 
 # Therefore use 1 thread when using h264_nvenc/h264_vaapi encoding and 2 threads when using libx264
 if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]  &&  [ "${VID_CODEC}" == "h264_nvenc" ]; then
-  VID_PRESET="llhq"
+  VID_PRESET="ll"
   VID_PRESET_FULL="-preset ${VID_PRESET}"
   VID_CODEC_COMMON="-b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
   VID_CODEC_EXTRA="-filter:v scale=out_color_matrix=${VID_COLORMATRIX} -no-scenecut 1"
