@@ -81,6 +81,17 @@ case ${IP_PROTO} in
   udp) STREAM_OPTIONS="";;
 esac
 
+# Do we have nvdec capable hardware?
+TEST_NVENC=$(nvidia-smi -q | grep Encoder | wc -l)
+TEST_CUVID=$(${PLAYER} -hide_banner -decoders | grep h264_cuvid | wc -l)
+if [ ${TEST_NVENC} -ge 1 ]  && [ ${TEST_CUVID} -ge 1 ]; then
+  DECODER="h264_cuvid"
+  THREADS=1
+else
+  DECODER="h264"
+  THREADS=2
+fi
+
 # Call cleanup_trap() function on Ctrl+C 
 trap "cleanup_trap" SIGINT SIGTERM
 
