@@ -104,11 +104,11 @@ if [ "${LAUNCHER}" == "play-stream" ]; then
         # Play a video stream with low latency
         # - https://stackoverflow.com/questions/16658873/how-to-minimize-the-delay-in-a-live-streaming-with-ffmpeg
         echo "Playing: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
-        ffplay -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
-          -probesize 4M -fflags nobuffer+fastseek+flush_packets -flags low_delay -sync ext -framedrop -window_title "${WIN_TITLE}" -i "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
+        ${PLAYER} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
+          -probesize 2M -fflags nobuffer+fastseek+flush_packets+igndts -flags low_delay -sync ext -framedrop -noinfbuf -window_title "${WIN_TITLE}" -vcodec ${DECODER} -i "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
         ;;
       mpv)
-        mpv --no-cache --untimed --profile=low-latency --title="${WIN_TITLE}" "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
+        mpv --no-cache --untimed --profile=low-latency --demuxer-lavf-buffersize=1 --swapchain-depth=1 --title="${WIN_TITLE}" "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
         ;;
     esac
   done
@@ -116,5 +116,5 @@ elif [ "${LAUNCHER}" == "record-stream" ]; then
   echo "Recording: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
   # Record a video stream in a Matroska container.
   ffmpeg -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
-    -probesize 4M -fflags nobuffer+fastseek+flush_packets -flags low_delay -strict experimental -i ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS} -c:a copy -c:v copy "${LAUNCHER}-${STAMP}.mkv"
+    -probesize 2M -fflags nobuffer+fastseek+flush_packets+igndts -flags low_delay -strict experimental -i ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS} -c:a copy -c:v copy "${LAUNCHER}-${STAMP}.mkv"
 fi
