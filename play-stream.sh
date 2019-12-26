@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 
-PLAYER="ffplay"
+if [ -x /snap/bin/ffmpeg.ffplay ]; then
+  PLAYER="/snap/bin/ffmpeg.ffplay"
+elif [ -x /usr/bin/ffplay ]; then
+  PLAYER="/usr/bin/ffplay"
+else
+  PLAYER="ffplay"
+fi
+
 LAUNCHER=$(basename $0 .sh)
 STAMP=$(date +"%C%j-%H%M%S")
 LOG_LEVEL="warning"
@@ -82,7 +89,7 @@ if [ "${LAUNCHER}" == "play-stream" ]; then
   while true; do
     WIN_TITLE="${LAUNCHER} - ${PLAYER}"
     case ${PLAYER} in
-      ffplay)
+      /snap/bin/ffmpeg.ffplay|/usr/bin/ffplay|ffplay)
         # Play a video stream with low latency
         # - https://stackoverflow.com/questions/16658873/how-to-minimize-the-delay-in-a-live-streaming-with-ffmpeg
         echo "Playing: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
