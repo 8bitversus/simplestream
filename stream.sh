@@ -24,6 +24,7 @@ VID_BITRATE="0k"
 VID_PIXELFORMAT="yuv420p"
 # Set the colour space to use; bt601 preserves the colour from emulators so is the default.
 VID_COLORSPACE="bt601"
+VID_SIGNAL="PAL"
 VID_PROFILE="high"
 VID_LEVEL="4.2"
 # Disable capturing the mouse xcursor; change to 1 to capture mouse xcursor
@@ -170,12 +171,12 @@ fi
 case ${VID_COLORSPACE} in
   bt601)
     # FIXME! This is a crude way to distinguish PAL/NTSC video
-    case ${VID_FPS} in
-      25|50)
+    case ${VID_SIGNAL} in
+      PAL)
         VID_COLORMATRIX="gamma28"
         VID_COLORSPACE="bt470bg"
       ;;
-      30|60)
+      NTSC)
         VID_COLORMATRIX="smpte170m"
         VID_COLORSPACE="smpte170m"
       ;;
@@ -264,7 +265,7 @@ if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]  &&  [ "${VID_CODEC}
   VID_PRESET_FULL="-preset ${VID_PRESET}"
   VID_CODEC_COMMON="-b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
   VID_CODEC_EXTRA="-filter:v scale=out_color_matrix=${VID_COLORMATRIX} -no-scenecut 1"
-  VID_CODEC_COLORS="-color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE}"
+  VID_CODEC_COLORS="-color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE} -color_range 1"
   THREADS=1
   DISABLE_FLIPPING=$(nvidia-settings -a ${DISPLAY}/AllowFlipping=0)
 elif [ ${TEST_VAAPI} -eq 0 ] && [ "${VID_CODEC}" == "h264_vaapi" ]; then
@@ -286,8 +287,8 @@ else
   VID_PRESET="veryfast"
   VID_PRESET_FULL="-preset ${VID_PRESET}"
   VID_CODEC_COMMON="-b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
-  VID_CODEC_EXTRA="-x264opts no-sliced-threads:no-scenecut -tune zerolatency -bsf:v h264_mp4toannexb"
-  VID_CODEC_COLORS="-color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE}"
+  VID_CODEC_EXTRA="-filter:v scale=out_color_matrix=${VID_COLORMATRIX} -x264opts no-sliced-threads:no-scenecut -tune zerolatency -bsf:v h264_mp4toannexb"
+  VID_CODEC_COLORS="-color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE} -color_range 1"
   CPU_CORES=$(cat /proc/cpuinfo | grep "cpu cores" | head -n 1 | cut -d':' -f2 | sed 's/ //g')
   if [ ${CPU_CORES} -ge 2 ]; then
     THREADS=2
@@ -378,9 +379,10 @@ fi
 echo " - ${VID_SIZE}@${VID_FPS}fps using ${VID_CODEC}/${VID_PRESET} (${VID_BITRATE}) and ${AUD_CODEC} (${AUD_BITRATE}) [${VID_PROFILE}@L${VID_LEVEL}]"
 ${FFMPEG} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
 -video_size ${VID_SIZE} -framerate ${VID_FPS} \
--f x11grab -thread_queue_size 256 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -i ${VID_CAPTURE} \
+-fflags nobuffer+flush_packets -flags low_delay \
+-f x11grab -thread_queue_size 256 -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -src_range 0 -i ${VID_CAPTURE} \
 -f pulse -thread_queue_size 256 -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_RECORD_DEVICE} \
--c:v ${VID_CODEC} -pix_fmt ${VID_PIXELFORMAT} ${VID_PRESET_FULL} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_COMMON} ${VID_CODEC_EXTRA} ${VID_CODEC_COLORS} \
+-c:v ${VID_CODEC} -pix_fmt ${VID_PIXELFORMAT} ${VID_PRESET_FULL} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_COMMON} ${VID_CODEC_EXTRA} ${VID_CODEC_COLORS} -dst_range 0 \
 -c:a ${AUD_CODEC} -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} ${AUD_CODEC_EXTRA} \
 ${OUTPUT}
 cleanup_trap
