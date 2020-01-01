@@ -45,20 +45,24 @@ THREAD_Q=512
 function usage {
   echo
   echo "Usage"
-  echo "  ${LAUNCHER} [--abitrate 96k] [--asamplerate 22050] [--ffmpeg /snap/bin/ffmpeg]"
-  echo "              [--fps 60] [--ip 192.168.0.1] [--mouse] [--port 4864] [--protocol tcp|udp]"
-  echo "              [--stream-options '?fifo_size=10240'] [--vaapi-device /dev/dri/renderD128]"
+  echo "  ${LAUNCHER} [--abitrate 96k] [--acodec mp2] [--asamplerate 22050] [--colspace bt601] [--ffmpeg /snap/bin/ffmpeg]"
+  echo "              [--fps 60] [--ip 192.168.0.1] [--mouse] [--pixfmt nv12] [--port 4864] [--protocol tcp|udp]"
+  echo "              [--signal PAL] [--stream-options '?fifo_size=10240'] [--vaapi-device /dev/dri/renderD128]"
   echo "              [--vbitrate 640k] [--vcodec libx264] [--vsync auto|passthrough|cfr|vfr|drop] [--help]"
   echo
   echo "You can also pass optional parameters"
   echo "  --abitrate      : Set audio codec bitrate for the stream."
+  echo "  --acodec        : Set audio codec for the stream. [aac|mp2|mp3]"
   echo "  --asamplerate   : Set audio sample rate for the stream."
+  echo "  --colspace      : Set color space. [bt601|bt709]"
   echo "  --ffmpeg        : Set the full path to ffmpeg."
   echo "  --fps           : Set framerate to stream at."
   echo "  --ip            : Set the IP address to stream to."
   echo "  --mouse         : Enable capture of mouse cursor; disabled by default."
+  echo "  --pixfmt        : Set the pixel format [nv12|yuv420p]"
   echo "  --port          : Set the tcp/udp port to stream to."
   echo "  --protocol      : Set the protocol to stream over. [tcp|udp]"
+  echo "  --signal        : Set video signal. [PAL|NTSC]"
   echo "  --steam-options : Set tcp/udp stream options; such as '?fifo_size=10240'."
   echo "  --vaapi-device  : Set the full path to the VA-API device; such as /dev/dri/renderD128"
   echo "  --vbitrate      : Set video codec bitrate for the stream."
@@ -77,8 +81,16 @@ while [ $# -gt 0 ]; do
       AUD_BITRATE="$2"
       shift
       shift;;
+    -acodec|--acodec)
+      AUD_CODEC="$2"
+      shift
+      shift;;
     -asamplerate|--asamplerate)
       AUD_SAMPLERATE="$2"
+      shift
+      shift;;
+    -colspace|--colspace)
+      VID_COLORSPACE="$2"
       shift
       shift;;
     -ffmpeg|--ffmpeg)
@@ -96,12 +108,20 @@ while [ $# -gt 0 ]; do
     -mouse|--mouse)
       VID_MOUSE=1
       shift;;
+    -pixfmt|--pixfmt)
+      VID_PIXELFORMAT="$2"
+      shift
+      shift;;
     -port|--port)
       IP_PORT="$2"
       shift
       shift;;
     -protocol|--protocol)
       IP_PROTO="$2"
+      shift
+      shift;;
+    -signal|--signal)
+      VID_SIGNAL="$2"
       shift
       shift;;
     -stream-options|--stream-options)
@@ -142,7 +162,10 @@ if [ "${IP_PROTO}" != "tcp" ] && [ "${IP_PROTO}" != "udp" ]; then
   exit 1
 fi
 
-if [ "${AUD_CODEC}" == "aac" ]; then
+if [ "${AUD_CODEC}" != "aac" ] && [ "${AUD_CODEC}" != "mp2" ] && [ "${AUD_CODEC}" != "mp3" ]; then
+  echo "ERROR! Unknown audio codec: ${AUD_CODEC}. Quitting."
+  exit 1
+elif [ "${AUD_CODEC}" == "aac" ]; then
   AUD_CODEC_EXTRA="-bsf:a aac_adtstoasc"
 else
   AUD_CODEC_EXTRA=""
@@ -150,6 +173,11 @@ fi
 
 if [ "${VID_CODEC}" != "libx264" ] && [ "${VID_CODEC}" != "h264_nvenc" ] && [ "${VID_CODEC}" != "h264_vaapi" ]; then
   echo "ERROR! Unknown video codec: ${VID_CODEC}. Quitting."
+  exit 1
+fi
+
+if [ "${VID_PIXELFORMAT}" != "nv12" ] && [ "${VID_PIXELFORMAT}" != "yuv420p" ]; then
+  echo "ERROR! Unknown pixel format: ${VID_PIXELFORMAT}. Quitting."
   exit 1
 fi
 
@@ -171,9 +199,8 @@ fi
 #  - https://kdenlive.org/en/project/color-hell-ffmpeg-transcoding-and-preserving-bt-601/
 case ${VID_COLORSPACE} in
   bt601)
-    # FIXME! This is a crude way to distinguish PAL/NTSC video
     case ${VID_SIGNAL} in
-      PAL)
+      PAL|SECAM)
         VID_COLORMATRIX="gamma28"
         VID_COLORSPACE="bt470bg"
       ;;
@@ -181,10 +208,18 @@ case ${VID_COLORSPACE} in
         VID_COLORMATRIX="smpte170m"
         VID_COLORSPACE="smpte170m"
       ;;
+      *)
+        echo "ERROR! Unknown video signal: ${VID_SIGNAL}. Quitting."
+        exit 1
+        ;;
     esac
     ;;
   bt709)
     VID_COLORMATRIX="bt709"
+    ;;
+  *)
+    echo "ERROR! Unknown video color space: ${VID_COLORSPACE}. Quitting."
+    exit 1
     ;;
 esac
 
