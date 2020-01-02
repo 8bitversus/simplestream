@@ -38,6 +38,8 @@ AUD_SAMPLERATE="44100"
 AUD_BITRATE="0k"
 AUD_COMBINE="8-bit-vs-combine"
 AUD_COMBINE_DESC="8-bit-Vs-Combine"
+AUD_CHANNELS=1
+AUD_CUTOFF="8000"
 STREAM_OPTIONS=""
 VAAPI_DEVICE="/dev/dri/renderD128"
 THREAD_Q=512
@@ -45,8 +47,8 @@ THREAD_Q=512
 function usage {
   echo
   echo "Usage"
-  echo "  ${LAUNCHER} [--abitrate 96k] [--acodec mp2] [--asamplerate 22050] [--colspace bt601] [--ffmpeg /snap/bin/ffmpeg]"
-  echo "              [--fps 60] [--ip 192.168.0.1] [--mouse] [--pixfmt nv12] [--port 4864] [--protocol tcp|udp]"
+  echo "  ${LAUNCHER} [--abitrate 96k] [--acodec mp2] [--asamplerate 44100] [--channels 1] [--colspace bt601] [--cutoff 8000]"
+  echo "              [--ffmpeg /snap/bin/ffmpeg] [--fps 60] [--ip 192.168.0.1] [--mouse] [--pixfmt nv12] [--port 4864] [--protocol tcp|udp]"
   echo "              [--signal PAL] [--stream-options '?fifo_size=10240'] [--vaapi-device /dev/dri/renderD128]"
   echo "              [--vbitrate 640k] [--vcodec libx264] [--vsync auto|passthrough|cfr|vfr|drop] [--help]"
   echo
@@ -54,7 +56,9 @@ function usage {
   echo "  --abitrate      : Set audio codec bitrate for the stream."
   echo "  --acodec        : Set audio codec for the stream. [aac|mp2|mp3]"
   echo "  --asamplerate   : Set audio sample rate for the stream."
+  echo "  --channels      : Set audio channels [1|2]."
   echo "  --colspace      : Set color space. [bt601|bt709]"
+  echo "  --cutoff        : Set highest audio frequency that will be encoded; defaults to 8000"
   echo "  --ffmpeg        : Set the full path to ffmpeg."
   echo "  --fps           : Set framerate to stream at."
   echo "  --ip            : Set the IP address to stream to."
@@ -89,8 +93,16 @@ while [ $# -gt 0 ]; do
       AUD_SAMPLERATE="$2"
       shift
       shift;;
+    -channels|--channels)
+      AUD_CHANNELS="$2"
+      shift
+      shift;;
     -colspace|--colspace)
       VID_COLORSPACE="$2"
+      shift
+      shift;;
+    -cutoff|--cutoff)
+      AUD_CUTOFF="$2"
       shift
       shift;;
     -ffmpeg|--ffmpeg)
@@ -281,6 +293,14 @@ if [ "${VID_BITRATE}" == "0k" ]; then
   VID_BITRATE="${VID_BITRATE}k"
 fi
 
+case ${AUD_CHANNELS} in
+  1) AUD_CHANNELS_TXT="mono";;
+  2) AUD_CHANNELS_TXT="stereo";;
+  *) 
+    echo "ERROR! Unknown number of audio channels: ${AUD_CHANNELS}. Quitting."
+    exit 1
+    ;;
+esac
 # Do we have nvenc capable hardware?
 TEST_NVENC=$(nvidia-smi -q | grep Encoder | wc -l)
 TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')
