@@ -98,9 +98,9 @@ trap "cleanup_trap" SIGINT SIGTERM
 if [ "${LAUNCHER}" == "play-stream" ]; then
   # Run the player in an infinite loop so is it always listening. Exit with Ctrl+C.
   while true; do
-    WIN_TITLE="${LAUNCHER} - ${PLAYER}"
     case ${PLAYER} in
       /snap/bin/ffmpeg.ffplay|/usr/bin/ffplay|ffplay)
+        WIN_TITLE="${LAUNCHER} - ffplay"
         # Play a video stream with low latency
         # - https://stackoverflow.com/questions/16658873/how-to-minimize-the-delay-in-a-live-streaming-with-ffmpeg
         echo "Playing: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
@@ -108,6 +108,7 @@ if [ "${LAUNCHER}" == "play-stream" ]; then
           -probesize 2M -fflags nobuffer+fastseek+flush_packets+igndts -flags low_delay -sync ext -framedrop -noinfbuf -window_title "${WIN_TITLE}" -vcodec ${DECODER} -i "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
         ;;
       mpv)
+        WIN_TITLE="${LAUNCHER} - mpv"
         mpv --no-cache --untimed --profile=low-latency --demuxer-lavf-buffersize=1 --swapchain-depth=1 --title="${WIN_TITLE}" "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
         ;;
     esac
