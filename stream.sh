@@ -174,15 +174,6 @@ if [ "${IP_PROTO}" != "tcp" ] && [ "${IP_PROTO}" != "udp" ]; then
   exit 1
 fi
 
-if [ "${AUD_CODEC}" != "aac" ] && [ "${AUD_CODEC}" != "mp2" ] && [ "${AUD_CODEC}" != "mp3" ]; then
-  echo "ERROR! Unknown audio codec: ${AUD_CODEC}. Quitting."
-  exit 1
-elif [ "${AUD_CODEC}" == "aac" ]; then
-  AUD_CODEC_EXTRA="-bsf:a aac_adtstoasc"
-else
-  AUD_CODEC_EXTRA=""
-fi
-
 if [ "${VID_CODEC}" != "libx264" ] && [ "${VID_CODEC}" != "h264_nvenc" ] && [ "${VID_CODEC}" != "h264_vaapi" ]; then
   echo "ERROR! Unknown video codec: ${VID_CODEC}. Quitting."
   exit 1
@@ -301,6 +292,39 @@ case ${AUD_CHANNELS} in
     exit 1
     ;;
 esac
+
+# Optimise audio encoding
+case ${AUD_CODEC} in
+  aac)
+    # If audio bitrate was not manually provided, set it to something sane for the given codec.
+    if [ "${AUD_BITRATE}" == "0k" ]; then
+      AUD_BITRATE="64k"
+    fi
+    AUD_OPTIONS="-aac_coder fast -aac_ms 0 -aac_is 0 -aac_pns 0 -cutoff ${AUD_CUTOFF}"
+    AUD_CODEC_EXTRA="-bsf:a aac_adtstoasc"
+    ;;
+  mp2)
+    # If audio bitrate was not manually provided, set it to something sane for the given codec.
+    if [ "${AUD_BITRATE}" == "0k" ]; then
+      AUD_BITRATE="96k"
+    fi
+    AUD_OPTIONS="-mode ${AUD_CHANNELS_TXT} -cutoff ${AUD_CUTOFF}"
+    AUD_CODEC_EXTRA=""
+    ;;
+  mp3) 
+    # If audio bitrate was not manually provided, set it to something sane for the given codec.
+    if [ "${AUD_BITRATE}" == "0k" ]; then
+      AUD_BITRATE="64k"
+    fi
+    AUD_OPTIONS="-joint_stereo 0 -compression_level 9 -cutoff ${AUD_CUTOFF}"
+    AUD_CODEC_EXTRA=""
+    ;;
+  *)
+    echo "ERROR! Unknown audio codec: ${AUD_CODEC}. Quitting."
+    exit 1
+    ;;
+esac
+
 # Do we have nvenc capable hardware?
 TEST_NVENC=$(nvidia-smi -q | grep Encoder | wc -l)
 TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')
@@ -437,8 +461,8 @@ ${FFMPEG} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
 -video_size ${VID_SIZE} -framerate ${VID_FPS} \
 -fflags nobuffer+flush_packets -flags low_delay \
 -f x11grab -thread_queue_size ${THREAD_Q} -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -src_range 0 -i ${VID_CAPTURE} \
--f pulse -thread_queue_size ${THREAD_Q} -channels 2 -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_RECORD_DEVICE} \
+-f pulse -thread_queue_size ${THREAD_Q} -channels ${AUD_CHANNELS} -sample_rate ${AUD_SAMPLERATE} -guess_layout_max 0 -i ${AUD_RECORD_DEVICE} \
 -c:v ${VID_CODEC} -pix_fmt ${VID_PIXELFORMAT} ${VID_PRESET_FULL} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_COMMON} ${VID_CODEC_EXTRA} ${VID_CODEC_COLORS} -dst_range 0 \
--c:a ${AUD_CODEC} -b:a ${AUD_BITRATE} -ac 2 -r:a ${AUD_SAMPLERATE} -strict experimental ${AUD_CODEC_EXTRA} \
+-c:a ${AUD_CODEC} ${AUD_OPTIONS} -b:a ${AUD_BITRATE} -ac ${AUD_CHANNELS} -r:a ${AUD_SAMPLERATE} -strict experimental ${AUD_CODEC_EXTRA} \
 ${OUTPUT}
 cleanup_trap
