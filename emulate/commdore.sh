@@ -46,14 +46,19 @@ if [ "${BORDERS}" != "0" ] && [ "${BORDERS}" != "3" ]; then
 fi
 
 x64 -default \
+  +confirmonexit \
   -model "${MODEL}" \
   -pal \
   -joydev1 4 \
   -joydev2 5 \
   -keepaspect \
   -refresh 1 \
+  -sound \
+  -soundrate 44100 \
+  -soundoutput 1 \
   -soundvolume "${VOLUME}" \
   +trueaspect \
+  -virtualdev \
   -VICIIborders "${BORDERS}" \
   -VICIIdsize \
   -VICIIdscan \

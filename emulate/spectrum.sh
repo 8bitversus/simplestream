@@ -60,12 +60,18 @@ if [ "${MACHINE}" != "48" ] && [ "${MACHINE}" != "128" ]; then
   exit 1
 fi
 
-${FUSE} --graphics-filter 2x \
-         --joystick-1-output 2 \
-         --joystick-2-output 2 \
-         --kempston \
-         --machine "${MACHINE}" \
-         --sound \
-         --volume-ay "${VOLUME}" \
-         --volume-beeper "${BEEPER}" \
-         "$@"
+${FUSE} --accelerate-loader \
+        --fastload \
+        --graphics-filter 2x \
+        --joystick-1-output 2 \
+        --joystick-2-output 2 \
+        --kempston \
+        --machine "${MACHINE}" \
+        --no-confirm-actions \
+        --separation none \
+        --sound \
+        --sound-force-8bit \
+        --sound-freq 44100 \
+        --volume-ay "${VOLUME}" \
+        --volume-beeper "${BEEPER}" \
+        "$@"
