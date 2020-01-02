@@ -34,8 +34,8 @@ VID_VSYNC="-1"
 
 # Audio encoding settings
 AUD_CODEC="mp2"
-AUD_SAMPLERATE="22050"
-AUD_BITRATE="96k"
+AUD_SAMPLERATE="44100"
+AUD_BITRATE="0k"
 AUD_COMBINE="8-bit-vs-combine"
 AUD_COMBINE_DESC="8-bit-Vs-Combine"
 STREAM_OPTIONS=""
