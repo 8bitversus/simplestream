@@ -6,7 +6,7 @@ if [ `id -u` -ne 0 ]; then
 fi
 
 # Essentials components
-apt install -y coreutils grep pulseaudio-utils scrot sed vainfo x11-utils
+apt install -y bc coreutils grep pulseaudio-utils scrot sed vainfo x11-utils
 
 # FFMPEG
 snap install ffmpeg

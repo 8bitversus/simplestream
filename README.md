@@ -54,6 +54,7 @@ Fred wants to stream game play to his friend Barny.
 
 Simple Stream is a shell script that uses the following awesome software.
 
+  - `bc`
   - `coreutils`
   - `grep`
   - `ffmpeg` (snap preferred since it enables h264_nvenc and h264_vaapi)
