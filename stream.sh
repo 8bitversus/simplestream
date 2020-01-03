@@ -316,7 +316,7 @@ case ${AUD_CODEC} in
     if [ "${AUD_BITRATE}" == "0k" ]; then
       AUD_BITRATE="64k"
     fi
-    AUD_OPTIONS="-joint_stereo 0 -compression_level 9 -cutoff ${AUD_CUTOFF}"
+    AUD_OPTIONS="-joint_stereo 0 -compression_level 9 -reservoir 0 -abr 0 -cutoff ${AUD_CUTOFF}"
     AUD_CODEC_EXTRA=""
     ;;
   *)
