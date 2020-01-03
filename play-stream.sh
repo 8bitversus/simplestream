@@ -105,7 +105,7 @@ if [ "${LAUNCHER}" == "play-stream" ]; then
         # - https://stackoverflow.com/questions/16658873/how-to-minimize-the-delay-in-a-live-streaming-with-ffmpeg
         echo "Playing: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
         ${PLAYER} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
-          -probesize 2M -fflags nobuffer+fastseek+flush_packets+igndts -flags low_delay -sync ext -framedrop -noinfbuf -window_title "${WIN_TITLE}" -vcodec ${DECODER} -i "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
+          -probesize 2M -fflags nobuffer+nofillin+fastseek+flush_packets+igndts -flags low_delay -avioflags direct -sync ext -framedrop -noinfbuf -strict experimental -window_title "${WIN_TITLE}" -vcodec ${DECODER} -i "${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
         ;;
       mpv)
         WIN_TITLE="${LAUNCHER} - mpv"
@@ -116,6 +116,6 @@ if [ "${LAUNCHER}" == "play-stream" ]; then
 elif [ "${LAUNCHER}" == "record-stream" ]; then
   echo "Recording: ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS}"
   # Record a video stream in a Matroska container.
-  ffmpeg -hide_banner -threads 0 -loglevel ${LOG_LEVEL} -stats \
-    -probesize 2M -fflags nobuffer+fastseek+flush_packets+igndts -flags low_delay -strict experimental -i ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS} -c:a copy -c:v copy "${LAUNCHER}-${STAMP}.mkv"
+  ffmpeg -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
+    -probesize 2M -fflags nobuffer+nofillin+fastseek+flush_packets+igndts -flags low_delay -avioflags direct -sync ext -framedrop -noinfbuf -strict experimental -i ${IP_PROTO}://${IP_ADDR}:${IP_PORT}${STREAM_OPTIONS} -c:a copy -c:v copy "${LAUNCHER}-${STAMP}.mkv"
 fi
