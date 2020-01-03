@@ -333,20 +333,12 @@ TEST_CUDA=$(${FFMPEG} -hide_banner -hwaccels | grep cuda | sed -e 's/ //g')
 TEST_VAINFO=$(vainfo 2>/dev/null)
 TEST_VAAPI=$?
 
-# More encoder threads beyond a certain threshold increases latency
-# (~1 frame per thread) and will have a higher encoding memory footprint.
-# Quality degradation is more prominent with higher thread counts in
-# constant bitrate modes and near-constant bitrate mode called VBV
-# (video buffer verifier), due to increased encode delay.
-# 
-# Therefore use 1 thread when using h264_nvenc/h264_vaapi encoding and 2 threads when using libx264
 if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]  &&  [ "${VID_CODEC}" == "h264_nvenc" ]; then
   VID_PRESET="ll"
   VID_PRESET_FULL="-preset ${VID_PRESET}"
   VID_CODEC_COMMON="-b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
   VID_CODEC_EXTRA="-filter:v scale=out_color_matrix=${VID_COLORMATRIX} -no-scenecut 1"
   VID_CODEC_COLORS="-color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE} -color_range 1"
-  THREADS=1
   DISABLE_FLIPPING=$(nvidia-settings -a ${DISPLAY}/AllowFlipping=0)
 elif [ ${TEST_VAAPI} -eq 0 ] && [ "${VID_CODEC}" == "h264_vaapi" ]; then
   VID_PIXELFORMAT="vaapi_vld"
@@ -354,7 +346,6 @@ elif [ ${TEST_VAAPI} -eq 0 ] && [ "${VID_CODEC}" == "h264_vaapi" ]; then
   VID_CODEC_COMMON="-b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
   VID_CODEC_EXTRA="-vaapi_device ${VAAPI_DEVICE} -filter:v format=${VID_PIXELFORMAT},hwupload"
   VID_CODEC_COLORS=""
-  THREADS=1
   if [ ! -e "${VAAPI_DEVICE}" ]; then
     echo "ERROR! Could not find VA-API device: ${VAAPI_DEVICE}. Quitting."
     exit 1
@@ -369,12 +360,21 @@ else
   VID_CODEC_COMMON="-b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
   VID_CODEC_EXTRA="-filter:v scale=out_color_matrix=${VID_COLORMATRIX} -x264opts no-sliced-threads:no-scenecut -tune zerolatency -bsf:v h264_mp4toannexb"
   VID_CODEC_COLORS="-color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE} -color_range 1"
-  CPU_CORES=$(cat /proc/cpuinfo | grep "cpu cores" | head -n 1 | cut -d':' -f2 | sed 's/ //g')
-  if [ ${CPU_CORES} -ge 2 ]; then
-    THREADS=2
-  else
-    THREADS=1
-  fi
+fi
+
+# More encoder threads beyond a certain threshold increases latency
+# (~1 frame per thread) and will have a higher encoding memory footprint.
+# Quality degradation is more prominent with higher thread counts in
+# constant bitrate modes and near-constant bitrate mode called VBV
+# (video buffer verifier), due to increased encode delay.
+# Therefore use minimise the thread count based on available cores.
+CPU_CORES=$(cat /proc/cpuinfo | grep "cpu cores" | head -n 1 | cut -d':' -f2 | sed 's/ //g')
+if [ ${CPU_CORES} -ge 4 ]; then
+  THREADS="-threads:v 1 -threads:a 1 -filter_threads 1"
+elif [ ${CPU_CORES} -ge 2 ]; then
+  THREADS="-threads 2"
+else
+  THREADS="-threads 1"
 fi
 
 function cleanup_trap() {
@@ -457,7 +457,7 @@ fi
 # - TODO -af "aresample=async=1:min_hard_comp=0.100000:first_pts=0"
 # - https://videoblerg.wordpress.com/2017/11/10/ffmpeg-and-how-to-use-it-wrong/
 echo " - ${VID_SIZE}@${VID_FPS}fps using ${VID_CODEC}/${VID_PRESET} (${VID_BITRATE}) and ${AUD_CODEC} (${AUD_BITRATE}) [${VID_PROFILE}@L${VID_LEVEL}]"
-${FFMPEG} -hide_banner -threads ${THREADS} -loglevel ${LOG_LEVEL} -stats \
+${FFMPEG} -hide_banner ${THREADS} -loglevel ${LOG_LEVEL} -stats \
 -video_size ${VID_SIZE} -framerate ${VID_FPS} \
 -fflags nobuffer+flush_packets -flags low_delay \
 -f x11grab -thread_queue_size ${THREAD_Q} -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -src_range 0 -i ${VID_CAPTURE} \
