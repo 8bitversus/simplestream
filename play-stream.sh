@@ -10,7 +10,7 @@ fi
 
 LAUNCHER=$(basename $0 .sh)
 STAMP=$(date +"%C%j-%H%M%S")
-LOG_LEVEL="warning"
+LOG_LEVEL="fatal"
 
 # Network settings
 IP_PROTO="tcp"
