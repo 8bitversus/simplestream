@@ -20,7 +20,7 @@ IP_ADDR="127.0.0.1"
 VID_CODEC="h264_nvenc"
 VID_FPS="60"
 VID_GOP=$((VID_FPS * 2))
-VID_BITRATE="0k"
+VID_BITRATE="0"
 VID_PIXELFORMAT="nv12"
 # Set the colour space to use; bt601 preserves the colour from emulators so is the default.
 VID_COLORSPACE="bt601"
@@ -50,10 +50,10 @@ function usage {
   echo "  ${LAUNCHER} [--abitrate 96k] [--acodec mp2] [--asamplerate 44100] [--channels 1] [--colspace bt601] [--cutoff 8000]"
   echo "              [--ffmpeg /snap/bin/ffmpeg] [--fps 60] [--ip 192.168.0.1] [--mouse] [--pixfmt nv12] [--port 4864] [--protocol tcp|udp]"
   echo "              [--signal PAL] [--stream-options '?fifo_size=10240'] [--vaapi-device /dev/dri/renderD128]"
-  echo "              [--vbitrate 640k] [--vcodec libx264] [--vsync auto|passthrough|cfr|vfr|drop] [--help]"
+  echo "              [--vbitrate 640000] [--vcodec libx264] [--vsync auto|passthrough|cfr|vfr|drop] [--help]"
   echo
   echo "You can also pass optional parameters"
-  echo "  --abitrate      : Set audio codec bitrate for the stream."
+  echo "  --abitrate      : Set audio codec bitrate for the stream in kbits/sec."
   echo "  --acodec        : Set audio codec for the stream. [aac|mp2|mp3]"
   echo "  --asamplerate   : Set audio sample rate for the stream."
   echo "  --channels      : Set audio channels [1|2]."
@@ -69,7 +69,7 @@ function usage {
   echo "  --signal        : Set video signal. [PAL|NTSC]"
   echo "  --steam-options : Set tcp/udp stream options; such as '?fifo_size=10240'."
   echo "  --vaapi-device  : Set the full path to the VA-API device; such as /dev/dri/renderD128"
-  echo "  --vbitrate      : Set video codec bitrate for the stream."
+  echo "  --vbitrate      : Set video codec bitrate for the stream in bits/sec."
   echo "  --vcodec        : Set video codec for the stream. [libx264|h264_nvenc|h264_vaapi]"
   echo "  --vsync         : Set vsync method in the video encoder; 'auto' by default."
   echo "  --help          : This help."
@@ -278,11 +278,22 @@ VID_CAPTURE="${DISPLAY}+${CAPTURE_X},${CAPTURE_Y}"
 VID_SIZE="${CAPTURE_WIDTH}x${CAPTURE_HEIGHT}"
 
 # If video bitrate was not manually provided, dynamically calculate it
-if [ "${VID_BITRATE}" == "0k" ]; then
+if [ "${VID_BITRATE}" == "0" ]; then
   VID_BITRATE=$(( (((CAPTURE_WIDTH/8) * VID_FPS)/10) + (CAPTURE_HEIGHT/3) ))
   [ $((VID_BITRATE%2)) -ne 0 ] && ((VID_BITRATE++))
-  VID_BITRATE="${VID_BITRATE}k"
+  VID_BITRATE=$(( VID_BITRATE * 1000 ))
 fi
+
+# Make video bitrate allocation more predicatable.
+#  - max bitrate 10% more than bitrate
+#  - bufsize twice the bitrate; therefore 2 seconds
+# - https://trac.ffmpeg.org/wiki/Limiting%20the%20output%20bitrate
+# - https://superuser.com/questions/945413/how-to-consider-bitrate-maxrate-and-bufsize-of-a-video-for-web
+VID_MAXRATE=$(echo ${VID_BITRATE}*1.1 | bc | cut -d'.' -f1)
+VID_BUFSIZE=$(echo ${VID_BITRATE}*2 | bc | cut -d'.' -f1)
+VID_BITRATE=$((VID_BITRATE / 1000))"k"
+VID_MAXRATE=$((VID_MAXRATE / 1000))"k"
+VID_BUFSIZE=$((VID_BUFSIZE / 1000))"k"
 
 case ${AUD_CHANNELS} in
   1) AUD_CHANNELS_TXT="mono";;
@@ -336,14 +347,14 @@ TEST_VAAPI=$?
 if [ ${TEST_NVENC} -ge 1 ]  && [ "${TEST_CUDA}" == "cuda" ]  &&  [ "${VID_CODEC}" == "h264_nvenc" ]; then
   VID_PRESET="ll"
   VID_PRESET_FULL="-preset ${VID_PRESET}"
-  VID_CODEC_COMMON="-b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
+  VID_CODEC_COMMON="-b:v ${VID_BITRATE} -maxrate ${VID_MAXRATE} -bufsize ${VID_BUFSIZE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
   VID_CODEC_EXTRA="-filter:v scale=out_color_matrix=${VID_COLORMATRIX} -no-scenecut 1"
   VID_CODEC_COLORS="-color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE} -color_range 1"
   DISABLE_FLIPPING=$(nvidia-settings -a ${DISPLAY}/AllowFlipping=0)
 elif [ ${TEST_VAAPI} -eq 0 ] && [ "${VID_CODEC}" == "h264_vaapi" ]; then
   VID_PIXELFORMAT="vaapi_vld"
   VID_PRESET_FULL=""
-  VID_CODEC_COMMON="-b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
+  VID_CODEC_COMMON="-b:v ${VID_BITRATE} -maxrate ${VID_MAXRATE} -bufsize ${VID_BUFSIZE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
   VID_CODEC_EXTRA="-vaapi_device ${VAAPI_DEVICE} -filter:v format=nv12,hwupload"
   VID_CODEC_COLORS=""
   if [ ! -e "${VAAPI_DEVICE}" ]; then
@@ -357,7 +368,7 @@ else
   VID_CODEC="libx264"
   VID_PRESET="veryfast"
   VID_PRESET_FULL="-preset ${VID_PRESET}"
-  VID_CODEC_COMMON="-b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
+  VID_CODEC_COMMON="-b:v ${VID_BITRATE} -maxrate ${VID_MAXRATE} -bufsize ${VID_BUFSIZE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
   VID_CODEC_EXTRA="-filter:v scale=out_color_matrix=${VID_COLORMATRIX} -x264opts no-sliced-threads:no-scenecut -tune zerolatency -bsf:v h264_mp4toannexb"
   VID_CODEC_COLORS="-color_primaries ${VID_COLORSPACE} -color_trc ${VID_COLORMATRIX} -colorspace ${VID_COLORSPACE} -color_range 1"
 fi
