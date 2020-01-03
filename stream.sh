@@ -240,8 +240,8 @@ xwininfo | tee ${TMP_XWININFO} > /dev/null
 # Crop menus and status areas from known emulators.
 WIN_ID=$(grep "Window id:" ${TMP_XWININFO})
 if [[ ${WIN_ID} == *"VICE"* ]]; then
-  TOP_OFFSET=30
-  BOT_OFFSET=$((TOP_OFFSET + 50))
+  TOP_OFFSET=28
+  BOT_OFFSET=$((TOP_OFFSET + 48))
   LEFT_OFFSET=0
   RIGHT_OFFSET=0
 # Fuse SDL doesn't require cropping
