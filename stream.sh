@@ -344,7 +344,7 @@ elif [ ${TEST_VAAPI} -eq 0 ] && [ "${VID_CODEC}" == "h264_vaapi" ]; then
   VID_PIXELFORMAT="vaapi_vld"
   VID_PRESET_FULL=""
   VID_CODEC_COMMON="-b:v ${VID_BITRATE} -g ${VID_GOP} -vsync ${VID_VSYNC} -sc_threshold 0"
-  VID_CODEC_EXTRA="-vaapi_device ${VAAPI_DEVICE} -filter:v format=${VID_PIXELFORMAT},hwupload"
+  VID_CODEC_EXTRA="-vaapi_device ${VAAPI_DEVICE} -filter:v format=nv12,hwupload"
   VID_CODEC_COLORS=""
   if [ ! -e "${VAAPI_DEVICE}" ]; then
     echo "ERROR! Could not find VA-API device: ${VAAPI_DEVICE}. Quitting."
