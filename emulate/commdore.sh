@@ -6,6 +6,7 @@
 # the computers we owned and loved in the 1980s.
 
 MODEL="c64"
+SIGNAL="pal"
 VOLUME="20"
 BORDERS="3"
 
@@ -19,6 +20,10 @@ while [ $# -gt 0 ]; do
   case "${1}" in
     -borders|--borders)
       BORDERS="0"
+      shift;;
+    -signal|--signal)
+      SIGNAL="$2"
+      shift
       shift;;
     -volume|--volume)
       VOLUME="$2"
@@ -35,10 +40,25 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-if [ "${MODEL}" != "c64" ]; then
+if [ "${MODEL}" != "c64" ] && [ "${MODEL}" != "ntsc" ]; then
   echo "ERROR! Unknown machine type: ${MODEL}. Quitting."
   exit 1
+elif [ "${MODEL}" == "ntsc" ]; then
+  SIGNAL="ntsc"
 fi
+
+case ${SIGNAL} in
+  PAL|pal)
+    SIGNAL="pal"
+    ;;
+  NTSC|ntsc)
+    SIGNAL="ntsc"
+    ;;
+  *)
+    echo "ERROR! Unknown video signal: ${SIGNAL}. Quitting."
+    exit 1
+    ;;
+esac
 
 if [ "${BORDERS}" != "0" ] && [ "${BORDERS}" != "3" ]; then
   echo "ERROR! Unknown border type: ${BORDERS}. Quitting."
@@ -48,7 +68,7 @@ fi
 x64 -default \
   +confirmonexit \
   -model "${MODEL}" \
-  -pal \
+  -${SIGNAL} \
   -joydev1 4 \
   -joydev2 5 \
   -keepaspect \
