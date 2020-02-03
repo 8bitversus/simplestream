@@ -9,11 +9,34 @@ MODEL="c64"
 SIGNAL="pal"
 VOLUME="20"
 BORDERS="3"
+ROMS=""
 
 function usage {
   echo "HELP! There is no help here. Ask Wimpy!"
   exit 1
 }
+
+if [ -d ${HOME}/snap/syncthing/common/8-bitVs ]; then
+  BVSDIR="${HOME}/snap/syncthing/common/8-bitVs"
+elif [ -d ${HOME}/8bitVs ]; then
+  BVSDIR="${HOME}/8bitVs"
+fi
+
+if [ -f ${BVSDIR}/ROMS/jiffydos.rom ]; then
+  ROMS+=" -kernal ${BVSDIR}/ROMS/jiffydos.rom"
+fi
+
+if [ -f ${BVSDIR}/ROMS/basic.rom ]; then
+  ROMS+=" -basic ${BVSDIR}/ROMS/basic.rom"
+fi
+
+if [ -f ${BVSDIR}/ROMS/characters.rom ]; then
+  ROMS+=" -chargen ${BVSDIR}/ROMS/characters.rom"
+fi
+
+if [ -f ${BVSDIR}/ROMS/1542-jiffydos.rom ]; then
+  ROMS+=" -dos1541II ${BVSDIR}/ROMS/1542-jiffydos.rom -drive8type 1542 -drive8idle 2"
+fi
 
 # Check for optional parameters
 while [ $# -gt 0 ]; do
@@ -94,4 +117,5 @@ x64 -default \
   -VICIIcrtscanlineshade 550 \
   -VICIIoddlinesphase 1000 \
   -VICIIoddlinesoffset 1200 \
+  ${ROMS} \
   "$@"
