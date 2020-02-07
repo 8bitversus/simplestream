@@ -279,7 +279,7 @@ VID_SIZE="${CAPTURE_WIDTH}x${CAPTURE_HEIGHT}"
 
 # If video bitrate was not manually provided, dynamically calculate it
 if [ "${VID_BITRATE}" == "0" ]; then
-  VID_BITRATE=$(( (((CAPTURE_WIDTH/8) * VID_FPS)/10) + (CAPTURE_HEIGHT/3) ))
+  VID_BITRATE=$(( (((CAPTURE_WIDTH/8) * VID_FPS)/10) + (CAPTURE_HEIGHT/2) ))
   [ $((VID_BITRATE%2)) -ne 0 ] && ((VID_BITRATE++))
   VID_BITRATE=$(( VID_BITRATE * 1000 ))
 fi
