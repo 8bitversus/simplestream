@@ -252,8 +252,8 @@ elif [[ ${WIN_ID} == *"Fuse -"* ]]; then
   RIGHT_OFFSET=64
 # Fuse GTK does require cropping
 elif [[ ${WIN_ID} == *"Fuse"* ]]; then
-  TOP_OFFSET=77
-  BOT_OFFSET=$((TOP_OFFSET + 73))
+  TOP_OFFSET=73
+  BOT_OFFSET=$((TOP_OFFSET + 74))
   LEFT_OFFSET=64
   RIGHT_OFFSET=64
 else
