@@ -370,8 +370,8 @@ fi
 # Quality degradation is more prominent with higher thread counts in
 # constant bitrate modes and near-constant bitrate mode called VBV
 # (video buffer verifier), due to increased encode delay.
-# Therefore use minimise the thread count based on available cores.
-CPU_CORES=$(cat /proc/cpuinfo | grep "cpu cores" | head -n 1 | cut -d':' -f2 | sed 's/ //g')
+# Therefore minimise the thread count based on available cores.
+CPU_CORES=$(nproc)
 if [ ${CPU_CORES} -ge 4 ]; then
   THREADS="-threads:v 1 -threads:a 1 -filter_threads 1"
 elif [ ${CPU_CORES} -ge 2 ]; then
