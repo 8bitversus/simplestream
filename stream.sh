@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 
-if [ -x /snap/bin/ffmpeg ]; then
-  FFMPEG="/snap/bin/ffmpeg"
-elif [ -x /usr/bin/ffmpeg ]; then
-  FFMPEG="/usr/bin/ffmpeg"
+if [ -x /snap/bin/obs-studio.ffmpeg ]; then
+  FFMPEG="/snap/bin/obs-studio.ffmpeg"
 else
   FFMPEG=""
 fi
@@ -12,7 +10,7 @@ STAMP=$(date +"%C%j-%H%M%S")
 LOG_LEVEL="warning"
 
 # Network settings
-IP_PROTO="tcp"
+IP_PROTO="srt"
 IP_PORT="4864"
 IP_ADDR="127.0.0.1"
 
@@ -47,7 +45,7 @@ function usage {
   echo
   echo "Usage"
   echo "  ${LAUNCHER} [--abitrate 96k] [--acodec mp2] [--asamplerate 44100] [--channels 1] [--colspace bt601]"
-  echo "              [--ffmpeg /snap/bin/ffmpeg] [--fps 60] [--ip 192.168.0.1] [--mouse] [--pixfmt nv12] [--port 4864] [--protocol tcp|udp]"
+  echo "              [--ffmpeg /snap/bin/obs-studio.ffmpeg] [--fps 60] [--ip 192.168.0.1] [--mouse] [--pixfmt nv12] [--port 4864] [--protocol srt|tcp|udp]"
   echo "              [--signal PAL] [--stream-options '?fifo_size=10240'] [--vaapi-device /dev/dri/renderD128]"
   echo "              [--vbitrate 640000] [--vcodec libx264] [--vsync auto|passthrough|cfr|vfr|drop] [--help]"
   echo
@@ -163,7 +161,7 @@ if [ ! -e "${FFMPEG}" ]; then
   exit 1
 fi
 
-if [ "${IP_PROTO}" != "tcp" ] && [ "${IP_PROTO}" != "udp" ]; then
+if [ "${IP_PROTO}" != "srt" ] && [ "${IP_PROTO}" != "tcp" ] && [ "${IP_PROTO}" != "udp" ]; then
   echo "ERROR! Unknown IP protocol: ${IP_PROTO}. Quitting."
   exit 1
 fi
@@ -222,7 +220,7 @@ esac
 
 # Use the appropriate container based on the protocol selected.
 case ${IP_PROTO} in
-  tcp|udp) VID_CONTAINER="mpegts";;
+  srt|tcp|udp) VID_CONTAINER="mpegts";;
 esac
 
 # Get the window we want to stream

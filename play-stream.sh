@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 
-if [ -x /snap/bin/ffmpeg.ffplay ]; then
-  PLAYER="/snap/bin/ffmpeg.ffplay"
-elif [ -x /usr/bin/ffplay ]; then
-  PLAYER="/usr/bin/ffplay"
+if [ -x /snap/bin/obs-studio.ffplay ]; then
+  PLAYER="/snap/bin/obs-studio.ffplay"
 else
-  PLAYER="ffplay"
+  PLAYER=""
 fi
 
 LAUNCHER=$(basename $0 .sh)
@@ -13,20 +11,20 @@ STAMP=$(date +"%C%j-%H%M%S")
 LOG_LEVEL="fatal"
 
 # Network settings
-IP_PROTO="tcp"
+IP_PROTO="srt"
 IP_PORT="4864"
-IP_ADDR="127.0.0.1"
+IP_ADDR="0.0.0.0"
 
 function usage {
   echo
   echo "Usage"
-  echo "  ${LAUNCHER} [--ip 192.168.0.1] [--player [ffplay|mpv] [--port 4864] [--protocol tcp|udp] [--help]"
+  echo "  ${LAUNCHER} [--ip 192.168.0.1] [--player [ffplay|mpv] [--port 4864] [--protocol srt|tcp|udp] [--help]"
   echo
   echo "You can also pass optional parameters"
   echo "  --ip       : Set the IP address to play from."
   echo "  --player   : Set the player. [ffplay|mpv]"
   echo "  --port     : Set the tcp/udp port to connect to."
-  echo "  --protocol : Set the protocol to play over. [tcp|udp]"
+  echo "  --protocol : Set the protocol to play over. [srt|tcp|udp]"
   echo "  --help     : This help."
   echo
   exit 1
@@ -71,12 +69,13 @@ if [ $? -eq 1 ]; then
   exit 1
 fi
 
-if [ "${IP_PROTO}" != "tcp" ] && [ "${IP_PROTO}" != "udp" ]; then
+if [ "${IP_PROTO}" != "srt" ] && [ "${IP_PROTO}" != "tcp" ] && [ "${IP_PROTO}" != "udp" ]; then
   echo "ERROR! Unknown IP protocol: ${IP_PROTO}. Quitting."
   exit 1
 fi
 
 case ${IP_PROTO} in
+  srt) STREAM_OPTIONS="?mode=listener";;
   tcp) STREAM_OPTIONS="?listen";;
   udp) STREAM_OPTIONS="";;
 esac
@@ -99,7 +98,7 @@ if [ "${LAUNCHER}" == "play-stream" ]; then
   # Run the player in an infinite loop so is it always listening. Exit with Ctrl+C.
   while true; do
     case ${PLAYER} in
-      /snap/bin/ffmpeg.ffplay|/usr/bin/ffplay|ffplay)
+      /snap/bin/obs-studio.ffplay|/usr/bin/ffplay|ffplay)
         WIN_TITLE="${LAUNCHER} - ffplay"
         # Play a video stream with low latency
         # - https://stackoverflow.com/questions/16658873/how-to-minimize-the-delay-in-a-live-streaming-with-ffmpeg
