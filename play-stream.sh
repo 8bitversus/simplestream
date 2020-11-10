@@ -91,7 +91,7 @@ else
   THREADS=2
 fi
 
-# Call cleanup_trap() function on Ctrl+C 
+# Call cleanup_trap() function on Ctrl+C
 trap "cleanup_trap" SIGINT SIGTERM
 
 if [ "${LAUNCHER}" == "play-stream" ]; then

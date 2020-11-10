@@ -290,7 +290,7 @@ VID_BUFSIZE=$((VID_BUFSIZE / 1000))"k"
 case ${AUD_CHANNELS} in
   1) AUD_CHANNELS_TXT="mono";;
   2) AUD_CHANNELS_TXT="stereo";;
-  *) 
+  *)
     echo "ERROR! Unknown number of audio channels: ${AUD_CHANNELS}. Quitting."
     exit 1
     ;;
@@ -314,7 +314,7 @@ case ${AUD_CODEC} in
     AUD_OPTIONS=""
     AUD_CODEC_EXTRA=""
     ;;
-  mp3) 
+  mp3)
     # If audio bitrate was not manually provided, set it to something sane for the given codec.
     if [ "${AUD_BITRATE}" == "0k" ]; then
       AUD_BITRATE="64k"
@@ -398,7 +398,7 @@ function cleanup_trap() {
   rm -f "${TMP_COMBINE_MODULES}"
 }
 
-# Call cleanup_trap() function on Ctrl+C 
+# Call cleanup_trap() function on Ctrl+C
 trap "cleanup_trap" SIGINT SIGTERM
 
 # Get the audio loopback device to record from; excludes Microphones.
@@ -438,7 +438,7 @@ done < "${TMP_SHORT_INPUTS}"
 rm -f "${TMP_SHORT_INPUTS}"
 rm -f "${TMP_LONG_INPUTS}"
 
-# If we moved some sinks the make our combine-sink monitor the recording source
+# If we moved some sinks then make our combine-sink monitor the recording source
 if [ ${AUD_MOVED_SINKS} -eq 1 ]; then
   AUD_COMBINE_DEVICE=$(pactl list short sources | grep ${AUD_COMBINE}.monitor | head -n 1 | cut -f1 | sed 's/ //g')
   AUD_RECORD_DEVICE=${AUD_COMBINE_DEVICE}
