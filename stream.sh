@@ -39,7 +39,6 @@ AUD_BITRATE="0k"
 AUD_COMBINE="8-bit-vs-combine"
 AUD_COMBINE_DESC="8-bit-Vs-Combine"
 AUD_CHANNELS=1
-AUD_CUTOFF="16000"
 STREAM_OPTIONS=""
 VAAPI_DEVICE="/dev/dri/renderD128"
 THREAD_Q=512
@@ -47,7 +46,7 @@ THREAD_Q=512
 function usage {
   echo
   echo "Usage"
-  echo "  ${LAUNCHER} [--abitrate 96k] [--acodec mp2] [--asamplerate 44100] [--channels 1] [--colspace bt601] [--cutoff 8000]"
+  echo "  ${LAUNCHER} [--abitrate 96k] [--acodec mp2] [--asamplerate 44100] [--channels 1] [--colspace bt601]"
   echo "              [--ffmpeg /snap/bin/ffmpeg] [--fps 60] [--ip 192.168.0.1] [--mouse] [--pixfmt nv12] [--port 4864] [--protocol tcp|udp]"
   echo "              [--signal PAL] [--stream-options '?fifo_size=10240'] [--vaapi-device /dev/dri/renderD128]"
   echo "              [--vbitrate 640000] [--vcodec libx264] [--vsync auto|passthrough|cfr|vfr|drop] [--help]"
@@ -58,7 +57,6 @@ function usage {
   echo "  --asamplerate   : Set audio sample rate for the stream."
   echo "  --channels      : Set audio channels [1|2]."
   echo "  --colspace      : Set color space. [bt601|bt709]"
-  echo "  --cutoff        : Set highest audio frequency that will be encoded; defaults to 8000"
   echo "  --ffmpeg        : Set the full path to ffmpeg."
   echo "  --fps           : Set framerate to stream at."
   echo "  --ip            : Set the IP address to stream to."
@@ -99,10 +97,6 @@ while [ $# -gt 0 ]; do
       shift;;
     -colspace|--colspace)
       VID_COLORSPACE="$2"
-      shift
-      shift;;
-    -cutoff|--cutoff)
-      AUD_CUTOFF="$2"
       shift
       shift;;
     -ffmpeg|--ffmpeg)
@@ -311,7 +305,7 @@ case ${AUD_CODEC} in
     if [ "${AUD_BITRATE}" == "0k" ]; then
       AUD_BITRATE="64k"
     fi
-    AUD_OPTIONS="-aac_coder fast -aac_ms 0 -aac_is 0 -aac_pns 0 -cutoff ${AUD_CUTOFF}"
+    AUD_OPTIONS="-aac_coder fast -aac_ms 0 -aac_is 0 -aac_pns 0"
     AUD_CODEC_EXTRA="-bsf:a aac_adtstoasc"
     ;;
   mp2)
@@ -319,7 +313,7 @@ case ${AUD_CODEC} in
     if [ "${AUD_BITRATE}" == "0k" ]; then
       AUD_BITRATE="96k"
     fi
-    AUD_OPTIONS="-mode ${AUD_CHANNELS_TXT} -cutoff ${AUD_CUTOFF}"
+    AUD_OPTIONS=""
     AUD_CODEC_EXTRA=""
     ;;
   mp3) 
@@ -327,7 +321,7 @@ case ${AUD_CODEC} in
     if [ "${AUD_BITRATE}" == "0k" ]; then
       AUD_BITRATE="64k"
     fi
-    AUD_OPTIONS="-joint_stereo 0 -compression_level 9 -reservoir 0 -abr 0 -cutoff ${AUD_CUTOFF}"
+    AUD_OPTIONS="-joint_stereo 0 -compression_level 9 -reservoir 0 -abr 0"
     AUD_CODEC_EXTRA=""
     ;;
   *)
