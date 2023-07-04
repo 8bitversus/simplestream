@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-RES_X=1280
-RES_Y=720
+RES_X=1920
+RES_Y=1080
 
 # Get the window we want to resize
 # - https://unix.stackexchange.com/questions/14159/how-do-i-find-the-window-dimensions-and-position-accurately-including-decoration
@@ -17,10 +17,10 @@ wmctrl -i -r ${WINDOW_ID} -e 0,0,0,${RES_X},${RES_Y}
 # Raise the window
 wmctrl -i -R ${WINDOW_ID}
 # Take the screenshot
-if [ -e $(which scrot) ]; then
-  scrot --focused ${HOME}/thumbnail.png
-elif [ -e $(which mate-screenshot) ]; then
-  mate-screenshot --window --remove-border
-else
-  echo "WARNING! No supported screenshot tool found."
-fi
+#if [ -e $(which scrot) ]; then
+#  scrot --focused ${HOME}/thumbnail.png
+#elif [ -e $(which mate-screenshot) ]; then
+#  mate-screenshot --window --remove-border
+#else
+#  echo "WARNING! No supported screenshot tool found."
+#fi
