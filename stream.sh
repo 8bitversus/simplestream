@@ -37,6 +37,8 @@ AUD_BITRATE="0k"
 AUD_COMBINE="8-bit-vs-combine"
 AUD_COMBINE_DESC="8-bit-Vs-Combine"
 AUD_CHANNELS=1
+# Disable capturing audio; change to 1 to disable audio capture
+AUD_NONE=0
 STREAM_OPTIONS=""
 VAAPI_DEVICE="/dev/dri/renderD128"
 THREAD_Q=512
@@ -59,6 +61,7 @@ function usage {
   echo "  --fps           : Set framerate to stream at."
   echo "  --ip            : Set the IP address to stream to."
   echo "  --mouse         : Enable capture of mouse cursor; disabled by default."
+  echo "  --noaudio       : Do not capture any audio."
   echo "  --pixfmt        : Set the pixel format [nv12|yuv420p]"
   echo "  --port          : Set the tcp/udp port to stream to."
   echo "  --protocol      : Set the protocol to stream over. [tcp|udp]"
@@ -111,6 +114,9 @@ while [ $# -gt 0 ]; do
       shift;;
     -mouse|--mouse)
       VID_MOUSE=1
+      shift;;
+    -noaudio|--noaudio)
+      AUD_NONE=1
       shift;;
     -pixfmt|--pixfmt)
       VID_PIXELFORMAT="$2"
@@ -401,6 +407,7 @@ function cleanup_trap() {
 # Call cleanup_trap() function on Ctrl+C
 trap "cleanup_trap" SIGINT SIGTERM
 
+if [ ${AUD_NONE} -eq 0 ]; then
 # Get the audio loopback device to record from; excludes Microphones.
 # - https://obsproject.com/forum/resources/include-exclude-audio-sources-using-pulseaudio-linux.95/
 # - https://unix.stackexchange.com/questions/488063/record-screen-and-internal-audio-with-ffmpeg
@@ -445,6 +452,7 @@ if [ ${AUD_MOVED_SINKS} -eq 1 ]; then
 else
   AUD_RECORD_DEVICE=${AUD_DEFAULT_DEVICE}
 fi
+fi
 
 # Stream/Capture the window and loopback audio as a low latency
 # H.264/AAC in MPEG2-TS (stream) or Matroska (capture) container
@@ -460,6 +468,15 @@ fi
 # - TODO -af "aresample=async=1:min_hard_comp=0.100000:first_pts=0"
 # - https://videoblerg.wordpress.com/2017/11/10/ffmpeg-and-how-to-use-it-wrong/
 echo " - ${VID_SIZE}@${VID_FPS}fps using ${VID_CODEC}/${VID_PRESET} (${VID_BITRATE}) and ${AUD_CODEC} (${AUD_BITRATE}) [${VID_PROFILE}@L${VID_LEVEL}]"
+if [ ${AUD_NONE} -eq 1 ]; then
+
+echo ${FFMPEG} -hide_banner ${THREADS} -loglevel ${LOG_LEVEL} -stats \
+-video_size ${VID_SIZE} -framerate ${VID_FPS} \
+-fflags nobuffer+fastseek+flush_packets+genpts -probesize 8192M -flags low_delay -avioflags direct \
+-f x11grab -thread_queue_size ${THREAD_Q} -draw_mouse ${VID_MOUSE} -r ${VID_FPS} -src_range 0 -i ${VID_CAPTURE} \
+-c:v ${VID_CODEC} -pix_fmt ${VID_PIXELFORMAT} ${VID_PRESET_FULL} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_COMMON} ${VID_CODEC_EXTRA} ${VID_CODEC_COLORS} -dst_range 0 \
+${OUTPUT}
+else
 ${FFMPEG} -hide_banner ${THREADS} -loglevel ${LOG_LEVEL} -stats \
 -video_size ${VID_SIZE} -framerate ${VID_FPS} \
 -fflags nobuffer+fastseek+flush_packets+genpts -flags low_delay -avioflags direct \
@@ -468,4 +485,6 @@ ${FFMPEG} -hide_banner ${THREADS} -loglevel ${LOG_LEVEL} -stats \
 -c:v ${VID_CODEC} -pix_fmt ${VID_PIXELFORMAT} ${VID_PRESET_FULL} -profile:v ${VID_PROFILE} -level:v ${VID_LEVEL} ${VID_CODEC_COMMON} ${VID_CODEC_EXTRA} ${VID_CODEC_COLORS} -dst_range 0 \
 -c:a ${AUD_CODEC} ${AUD_OPTIONS} -b:a ${AUD_BITRATE} -ac ${AUD_CHANNELS} -r:a ${AUD_SAMPLERATE} -strict experimental ${AUD_CODEC_EXTRA} \
 ${OUTPUT}
+fi
+
 cleanup_trap
